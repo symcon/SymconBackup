@@ -41,7 +41,7 @@ class SymconBackup extends IPSModule
         //create Connection
         $sftp = new SFTP($server);
         if(!$sftp->login($username, $password)){
-            $this->SetStatus(200);
+            $this->SetStatus(201);
             return;
         }
 
@@ -50,7 +50,7 @@ class SymconBackup extends IPSModule
         if ($baseDir != '') {
             $sftp->chdir($baseDir);
             if ($sftp->pwd() != $baseDir) {
-                $this->SetStatus(201);
+                $this->SetStatus(202);
                 return;
             }
         }
@@ -67,13 +67,15 @@ class SymconBackup extends IPSModule
         }
         //get recursive through the dirs and files and copy from local to remote
         if (!$this->copyFilesToServer($dir, $sftp, $mode)) {
-            echo 'Something is wrong';
             return ;
         }
 
         if ($mode == 'UpdateBackup') {
             $sftp->chdir($baseDir);
-            $this->compareFilesServerToLocal($baseDir, $sftp, ''); //compare the local files to the server and delete serverfiles if it hasn't a local file
+            //compare the local files to the server and delete serverfiles if it hasn't a local file
+            if(!$this->compareFilesServerToLocal($baseDir, $sftp, '')){
+                return false;
+            } 
         }
 
         $this->UpdateFormField('Progress', 'visible', false);
@@ -81,7 +83,7 @@ class SymconBackup extends IPSModule
 
     private function copyFilesToServer($dir, $sftp, $mode)
     {
-        //$this->SendDebug('DIR', $sftp->pwd(), 0);
+        
         //get the local files
         $files = scandir($dir);
         $files = array_diff($files, ['..', '.']);
@@ -94,21 +96,32 @@ class SymconBackup extends IPSModule
                 if (!$this->copyFilesToServer($dir . '/' . $file, $sftp, $mode)) {
                     return false;
                 }
+                $sftp->chdir('..');
             } else {
                 $this->UpdateFormField('Progress', 'caption', $dir . '/' . $file);
                 switch ($mode) {
                     case 'FullBackup':
                         //copy the files
-                        if (!$sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE)) {
+                        try {
+                            $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                        } catch (\Throwable $th) {
                             return false;
                         }
                         break;
                     case 'UpdateBackup':
-                        if (!$sftp->file_exists($file)) {
-                            return $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                        if (!$sftp->file_exists($sftp->pwd(). '/'.$file)) {
+                            try {
+                                $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                            } catch (\Throwable $th) {
+                                return false;
+                            }
                         } else {
                             if (filemtime($dir . '/' . $file) > $sftp->filemtime($file)) {
-                                return $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                                try {
+                                    $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                                } catch (\Throwable $th) {
+                                    return false;
+                                }
                             }
                         }
                         break;
@@ -141,6 +154,7 @@ class SymconBackup extends IPSModule
                 }
             }
         }
+        $sftp->chdir('..');
         return true;
     }
 }
