@@ -1,5 +1,5 @@
 # SymconBackup
-Beschreibung des Moduls.
+Erstellt ein Backup über SFTP.
 
 ### Inhaltsverzeichnis
 
@@ -7,17 +7,16 @@ Beschreibung des Moduls.
 2. [Voraussetzungen](#2-voraussetzungen)
 3. [Software-Installation](#3-software-installation)
 4. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
-5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
-6. [WebFront](#6-webfront)
-7. [PHP-Befehlsreferenz](#7-php-befehlsreferenz)
+5. [PHP-Befehlsreferenz](#5-php-befehlsreferenz)
 
 ### 1. Funktionsumfang
 
-*
+* Erstell ein Backup über SFTP auf einem Server
+* Updatet ein Backup über SFTP auf einem Server
 
 ### 2. Voraussetzungen
 
-- IP-Symcon ab Version 6.0
+- IP-Symcon ab Version 6.3
 
 ### 3. Software-Installation
 
@@ -33,35 +32,21 @@ __Konfigurationsseite__:
 
 Name     | Beschreibung
 -------- | ------------------
-         |
-         |
+Host  | IP Adresse des Servers
+Benutzername | Benutzernamen für die SFTP Verbindung 
+Passwort | Passwort für die SFTP Verbindung 
+Modus | Modus was für ein Backup erstellt werden soll  
+Ordner | 
+Backup erstellen | 
 
-### 5. Statusvariablen und Profile
+__Modus__: 
+Vollständiges Backup: Erstellt eine vollständige Kopie in einem seperaten Ordner 
+Backup updaten: Updatet ein bestehendes Backup. 
 
-Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzelner kann zu Fehlfunktionen führen.
+### 5. PHP-Befehlsreferenz
 
-#### Statusvariablen
-
-Name   | Typ     | Beschreibung
------- | ------- | ------------
-       |         |
-       |         |
-
-#### Profile
-
-Name   | Typ
------- | -------
-       |
-       |
-
-### 6. WebFront
-
-Die Funktionalität, die das Modul im WebFront bietet.
-
-### 7. PHP-Befehlsreferenz
-
-`boolean SB_BeispielFunktion(integer $InstanzID);`
-Erklärung der Funktion.
+`boolean SB_CreateBackup(integer $InstanzID);`
+Erstellt oder updatet ein Backup nach den Einstellungen der Instanz
 
 Beispiel:
-`SB_BeispielFunktion(12345);`
+`SB_CreateBackup(12345);`
