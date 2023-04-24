@@ -1,8 +1,15 @@
 {
     "translations": {
         "de": {
-            "Translation 1": "Übersetzung 1",
-            "Translation 2": "Übersetzung 2"
+            "Base Direction is not valid": "Ordner Pfad nicht korrekt",
+            "Login information are invalid": "Login Informationen nicht valide",
+            "Base Direction": "Ordner",
+            "Password": "Passwort",
+            "Username" : "Benutzername",
+            "Full Backup": "Vollständiges Backup",
+            "Update Backup": "Backup updaten",
+            "Mode": "Modus",
+            "Create Backup on Server": "Backup erstellen"
         }
     }
 }
