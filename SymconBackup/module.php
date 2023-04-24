@@ -40,7 +40,7 @@ class SymconBackup extends IPSModule
 
         //create Connection
         $sftp = new SFTP($server);
-        if(!$sftp->login($username, $password)){
+        if (!$sftp->login($username, $password)) {
             $this->SetStatus(201);
             return;
         }
@@ -67,15 +67,15 @@ class SymconBackup extends IPSModule
         }
         //get recursive through the dirs and files and copy from local to remote
         if (!$this->copyFilesToServer($dir, $sftp, $mode)) {
-            return ;
+            return;
         }
 
         if ($mode == 'UpdateBackup') {
             $sftp->chdir($baseDir);
             //compare the local files to the server and delete serverfiles if it hasn't a local file
-            if(!$this->compareFilesServerToLocal($baseDir, $sftp, '')){
+            if (!$this->compareFilesServerToLocal($baseDir, $sftp, '')) {
                 return false;
-            } 
+            }
         }
 
         $this->UpdateFormField('Progress', 'visible', false);
@@ -83,7 +83,7 @@ class SymconBackup extends IPSModule
 
     private function copyFilesToServer($dir, $sftp, $mode)
     {
-        
+
         //get the local files
         $files = scandir($dir);
         $files = array_diff($files, ['..', '.']);
@@ -109,7 +109,7 @@ class SymconBackup extends IPSModule
                         }
                         break;
                     case 'UpdateBackup':
-                        if (!$sftp->file_exists($sftp->pwd(). '/'.$file)) {
+                        if (!$sftp->file_exists($sftp->pwd() . '/' . $file)) {
                             try {
                                 $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                             } catch (\Throwable $th) {
@@ -131,23 +131,23 @@ class SymconBackup extends IPSModule
         return true;
     }
 
-    private function compareFilesServerToLocal($dir, $sftp, String $slug)
+    private function compareFilesServerToLocal($dir, $sftp, string $slug)
     {
         $serverList = $sftp->rawlist($dir, false);
 
         foreach ($serverList as $key => $file) {
             if ($key != '.' && $key != '..') {
-                if ($sftp->is_dir($dir. '/'.$file['filename'])) {
+                if ($sftp->is_dir($dir . '/' . $file['filename'])) {
                     //Create and go to the deeper dir on server
                     $sftp->chdir($file['filename']);
                     //go deeper
-                    if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, $slug .'/'. $file['filename'])) {
+                    if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, $slug . '/' . $file['filename'])) {
                         return false;
                     }
                 } else {
                     //Its a file
-                    $this->UpdateFormField('Progress', 'caption', $dir .'/'.$file['filename']);
-                    if (!file_exists(IPS_GetKernelDir() . '/'. $slug.'/' . $file['filename'])) {
+                    $this->UpdateFormField('Progress', 'caption', $dir . '/' . $file['filename']);
+                    if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //delete file that is not on the local system
                         return $sftp->delete($dir . '/' . $file['filename']);
                     }
