@@ -12,12 +12,16 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::Create();
 
-        $this->RegisterPropertyString('IPAddress', '');
+        $this->RegisterPropertyString('Host', '');
         $this->RegisterPropertyString('Username', '');
         $this->RegisterPropertyString('Password', '');
 
         $this->RegisterPropertyString('Mode', 'FullBackup');
-        $this->RegisterPropertyString('BaseDirection', '');
+        $this->RegisterPropertyString('TargetDir', '');
+        $this->RegisterPropertyString('DailyUpdateTime', '[]');
+        $this->RegisterPropertyString('FilterDirectory', '');
+
+        $this->RegisterTimer('UpdateBackup', 0, 'SB_CreateBackup($_IPS[\'TARGET\'])');
     }
 
     public function Destroy()
@@ -30,11 +34,13 @@ class SymconBackup extends IPSModule
     {
         //Never delete this line!
         parent::ApplyChanges();
+
+        $this->setNewTimer();
     }
 
     public function CreateBackup()
     {
-        $server = $this->ReadPropertyString('IPAddress');
+        $server = $this->ReadPropertyString('Host');
         $username = $this->ReadPropertyString('Username');
         $password = $this->ReadPropertyString('Password');
 
@@ -46,59 +52,63 @@ class SymconBackup extends IPSModule
         }
 
         //Set the base direction on the server
-        $baseDir = $this->ReadPropertyString('BaseDirection');
+        $baseDir = $this->ReadPropertyString('TargetDir');
         if ($baseDir != '') {
             $sftp->chdir($baseDir);
-            if ($sftp->pwd() != $baseDir) {
+            if (ltrim($sftp->pwd(), '/') != $baseDir) {
                 $this->SetStatus(202);
                 return;
             }
         }
         $this->SetStatus(102);
-        $dir = IPS_GetKernelDir();
+        $this->SetBuffer('LastUpdateFormField', time());
+        $this->SendDebug('Buffer', $this->GetBuffer('LastUpdateFormField'), 0);
         $this->UpdateFormField('Progress', 'visible', true);
-        $this->UpdateFormField('Progress', 'caption', '');
+        $this->UpdateFormField('Progress', 'caption', IPS_GetKernelDir());
 
         $mode = $this->ReadPropertyString('Mode');
         if ($mode == 'FullBackup') {
-            $backupName = date('d-m-Y-H-i-s');
+            $backupName = date('Y-m-d-H-i-s');
             $sftp->mkdir($backupName);
             $sftp->chdir($backupName);
         }
         //get recursive through the dirs and files and copy from local to remote
-        if (!$this->copyFilesToServer($dir, $sftp, $mode)) {
+        if (!$this->copyLocalToServer(IPS_GetKernelDir(), $sftp, $mode)) {
             return;
         }
 
-        if ($mode == 'UpdateBackup') {
-            $sftp->chdir($baseDir);
+        if ($mode == 'IncrementalBackup') {
             //compare the local files to the server and delete serverfiles if it hasn't a local file
-            if (!$this->compareFilesServerToLocal($baseDir, $sftp, '')) {
+            if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, '')) {
                 return false;
             }
         }
 
         $this->UpdateFormField('Progress', 'visible', false);
+        $this->setNewTimer();
     }
 
-    private function copyFilesToServer($dir, $sftp, $mode)
+    private function copyLocalToServer($dir, $sftp, $mode)
     {
 
         //get the local files
         $files = scandir($dir);
         $files = array_diff($files, ['..', '.']);
         foreach ($files as $file) {
+            if ($this->fileFilter($file)) {
+                continue;
+            }
             if (is_dir($dir . '/' . $file)) {
                 //Create and go to the deeper dir on server
                 $sftp->mkdir($file);
                 $sftp->chdir($file);
                 //go deeper
-                if (!$this->copyFilesToServer($dir . '/' . $file, $sftp, $mode)) {
+                if (!$this->copyLocalToServer($dir . '/' . $file, $sftp, $mode)) {
                     return false;
                 }
                 $sftp->chdir('..');
             } else {
-                $this->UpdateFormField('Progress', 'caption', $dir . '/' . $file);
+                $this->UpdateFormFieldByTime($dir . '/' . $file);
                 switch ($mode) {
                     case 'FullBackup':
                         //copy the files
@@ -108,7 +118,7 @@ class SymconBackup extends IPSModule
                             return false;
                         }
                         break;
-                    case 'UpdateBackup':
+                    case 'IncrementalBackup':
                         if (!$sftp->file_exists($sftp->pwd() . '/' . $file)) {
                             try {
                                 $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
@@ -146,7 +156,7 @@ class SymconBackup extends IPSModule
                     }
                 } else {
                     //Its a file
-                    $this->UpdateFormField('Progress', 'caption', $dir . '/' . $file['filename']);
+                    $this->UpdateFormFieldByTime($dir . '/' . $file['filename']);
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //delete file that is not on the local system
                         return $sftp->delete($dir . '/' . $file['filename']);
@@ -156,5 +166,58 @@ class SymconBackup extends IPSModule
         }
         $sftp->chdir('..');
         return true;
+    }
+
+    private function UpdateFormFieldByTime(string $dir)
+    {
+        $lastBuffer = $this->GetBuffer('LastUpdateFormField');
+        if (time() - $lastBuffer > 2) {
+            $this->UpdateFormField('Progress', 'caption', $dir);
+            $this->SetBuffer('LastUpdateFormField', time());
+        }
+    }
+
+    private function setNewTimer()
+    {
+        //Time for the next update
+        $time = json_decode($this->ReadPropertyString('DailyUpdateTime'), true);
+        if ($time) {
+            $next = strtotime('tomorrow ' . $time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
+            $this->SetTimerInterval('UpdateBackup', ($next - time()) * 1000);
+        }
+    }
+
+    private function fileFilter(string $file)
+    {
+
+        //Any non UTF-8 filename will break everything. Therefore we need to filter them
+        //See: https://stackoverflow.com/a/1523574/10288655 (Regex seems to be faster than mb_check_encoding)
+        if (!preg_match('%^(?:
+                [\x09\x0A\x0D\x20-\x7E]            # ASCII
+              | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+              | \xE0[\xA0-\xBF][\x80-\xBF]         # excluding overlongs
+              | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+              | \xED[\x80-\x9F][\x80-\xBF]         # excluding surrogates
+              | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+              | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+              | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+              )*$%xs', $file)) {
+            return true;
+        }
+
+        //Always compare lower case
+        $file = mb_strtolower($file);
+
+        //Check against file filter
+        $filters = json_decode($this->ReadPropertyString('FilterDirectory'), true);
+        $filters = array_column($filters, 'Directory');
+        if (count($filters) != 0) {
+            foreach ($filters as $filter) {
+                if ($file == $filter) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -5,7 +5,7 @@
             "items": [
                 {
                     "type": "ValidationTextBox",
-                    "name": "IPAddress",
+                    "name": "Host",
                     "caption": "Host"
                 },
                 {
@@ -21,24 +21,52 @@
             ]
         },
         {
-            "type": "Select",
-            "name": "Mode",
-            "caption": "Mode",
-            "options": [
+            "type": "RowLayout",
+            "items": [
                 {
-                    "caption": "Full Backup",
-                    "value": "FullBackup"
+                    "type": "Select",
+                    "name": "Mode",
+                    "caption": "Mode",
+                    "options": [
+                        {
+                            "caption": "Full Backup",
+                            "value": "FullBackup"
+                        },
+                        {
+                            "caption": "Incremental Backup",
+                            "value": "IncrementalBackup"
+                        }
+                    ]
                 },
                 {
-                    "caption": "Update Backup",
-                    "value": "UpdateBackup"
+                    "type": "SelectTime",
+                    "name": "DailyUpdateTime",
+                    "caption": "Daily Update Time"
+                },
+                {
+                    "type": "ValidationTextBox",
+                    "name": "TargetDir",
+                    "caption": "Target Directory"
                 }
             ]
         },
         {
-            "type": "ValidationTextBox",
-            "name": "BaseDirection",
-            "caption": "Base Direction"
+            "type": "List",
+            "name": "FilterDirectory",
+            "caption": "Filter Directory",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Directory",
+                    "name": "Directory",
+                    "width": "auto",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                }
+            ]
         },
         {
             "type": "ProgressBar",
@@ -59,12 +87,12 @@
         {
             "code": 201,
             "icon": "error",
-            "caption": "Login information are invalid"
+            "caption": "Login information is invalid"
         },
         {
             "code": 202,
             "icon": "error",
-            "caption": "Base Direction is not valid"
+            "caption": "Target Directory is not valid"
         }
     ]
 }

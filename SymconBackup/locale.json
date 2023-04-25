@@ -1,15 +1,19 @@
 {
     "translations": {
         "de": {
-            "Base Direction is not valid": "Ordner Pfad nicht korrekt",
-            "Login information are invalid": "Login Informationen nicht valide",
-            "Base Direction": "Ordner",
+            "Target Direction is not valid": "Zielpfad nicht korrekt",
+            "Login information is invalid": "Login Informationen nicht valide",
+            "Target Direction": "Zielordner",
             "Password": "Passwort",
             "Username": "Benutzername",
             "Full Backup": "Vollständiges Backup",
             "Update Backup": "Backup updaten",
             "Mode": "Modus",
-            "Create Backup on Server": "Backup erstellen"
+            "Create Backup on Server": "Backup erstellen",
+            "Daily Update Time": "Tägliche Zeit zum updaten",
+            "Filter Directory": "Gefilterter Ordner",
+            "Directory": "Ordner",
+            "Incremental Backup": "Inkrementelles Backup"
         }
     }
 }

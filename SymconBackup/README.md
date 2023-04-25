@@ -30,18 +30,19 @@ Erstellt ein Backup über SFTP.
 
 __Konfigurationsseite__:
 
-Name     | Beschreibung
--------- | ------------------
-Host  | IP Adresse des Servers
-Benutzername | Benutzernamen für die SFTP Verbindung 
-Passwort | Passwort für die SFTP Verbindung 
-Modus | Modus was für ein Backup erstellt werden soll  
-Ordner | 
-Backup erstellen | 
+Name                      | Beschreibung
+------------------------- | ------------------
+Host                      | IP Adresse des Servers
+Benutzername              | Benutzernamen für die SFTP Verbindung 
+Passwort                  | Passwort für die SFTP Verbindung 
+Modus                     | Modus was für ein Backup erstellt werden soll  
+Tägliche Zeit zum updaten | Zeit, wann das Update täglich startet  
+Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
+Backup erstellen          | Button, welcher sofort ein Update startet. 
 
 __Modus__: 
 Vollständiges Backup: Erstellt eine vollständige Kopie in einem seperaten Ordner 
-Backup updaten: Updatet ein bestehendes Backup. 
+Inkrementelles Backup: Updatet ein bestehendes Backup. 
 
 ### 5. PHP-Befehlsreferenz
 
