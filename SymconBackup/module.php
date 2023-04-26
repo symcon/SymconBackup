@@ -124,7 +124,7 @@ class SymconBackup extends IPSModule
         return json_encode($json);
     }
 
-    private function copyLocalToRemote(string $dir, SFTP $sftp, string $mode, &$transferred)
+    private function copyLocalToRemote(string $dir, SFTP $sftp, string $mode, & $transferred)
     {
 
         //get the local files
@@ -132,7 +132,7 @@ class SymconBackup extends IPSModule
         $files = array_diff($files, ['..', '.']);
 
         foreach ($files as $file) {
-            $this->SendDebug('File', $dir.'/'.$file, 0);
+            $this->SendDebug('File', $dir . '/' . $file, 0);
             if ($this->fileFilter($file)) {
                 continue;
             }
