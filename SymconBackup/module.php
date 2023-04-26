@@ -88,7 +88,7 @@ class SymconBackup extends IPSModule
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
-                $this->SetValue('TransferredMegabytes', $transferred);
+                $this->SetValue('TransferredMegabytes', $transferred / 1024 / 1024);
             }
 
             if ($mode == 'IncrementalBackup') {
@@ -145,7 +145,7 @@ class SymconBackup extends IPSModule
                 }
                 $sftp->chdir('..');
             } else {
-                $this->updateFormFieldByTime($dir . '/' . $file);
+                $this->updateFormFieldByTime($dir . '/' . ltrim(str_replace('\\', '/', $file), '/'));
                 switch ($mode) {
                     case 'FullBackup':
                         try {
@@ -196,7 +196,7 @@ class SymconBackup extends IPSModule
                     }
                 } else {
                     //It is a file we need to check
-                    $this->updateFormFieldByTime($dir . '/' . $file['filename']);
+                    $this->updateFormFieldByTime($dir . '/' . ltrim(str_replace('\\', '/', $file['filename']), '/'));
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //Delete file that is not on the local system
                         try {
