@@ -75,7 +75,7 @@ class SymconBackup extends IPSModule
                 }
             }
             $this->SetStatus(102);
-            $this->SetBuffer('LastUpdateFormField', time());
+            $this->SetBuffer('LastUpdateFormField', microtime(true));
             $this->UpdateFormField('Progress', 'visible', true);
             $this->UpdateFormField('Progress', 'caption', IPS_GetKernelDir());
 
@@ -86,12 +86,13 @@ class SymconBackup extends IPSModule
                 $sftp->chdir($backupName);
             }
             //get recursive through the dirs and files and copy from local to remote
-            $goThrough = $this->copyLocalToServer(IPS_GetKernelDir(), $sftp, $mode, 0);
-            if ($goThrough === false) {
+            $transferred = 0;
+            
+            if ($this->copyLocalToServer(IPS_GetKernelDir(), $sftp, $mode, $transferred)) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
-                $this->SetValue('TransferredMegabytes', $goThrough);
+                $this->SetValue('TransferredMegabytes', $transferred);
             }
 
             if ($mode == 'IncrementalBackup') {
@@ -124,15 +125,15 @@ class SymconBackup extends IPSModule
         return json_encode($json);
     }
 
-    private function copyLocalToServer(string $dir, SFTP $sftp, string $mode, $transferredMB)
+    private function copyLocalToServer(string $dir, SFTP $sftp, string $mode, &$transferred)
     {
 
         //get the local files
         $files = scandir($dir);
         $files = array_diff($files, ['..', '.']);
 
-        $transferred = 0;
         foreach ($files as $file) {
+            $this->SendDebug('File', $dir.'/'.$file, 0);
             if ($this->fileFilter($file)) {
                 continue;
             }
@@ -144,8 +145,6 @@ class SymconBackup extends IPSModule
                 $deeper = $this->copyLocalToServer($dir . '/' . $file, $sftp, $mode, $transferred);
                 if ($deeper === false) {
                     return false;
-                } else {
-                    $transferredMB += $deeper;
                 }
                 $sftp->chdir('..');
             } else {
@@ -182,7 +181,7 @@ class SymconBackup extends IPSModule
                 }
             }
         }
-        return $transferredMB + ($transferred / 1000000);
+        return true;
     }
 
     private function compareFilesServerToLocal($dir, $sftp, string $slug)
@@ -215,9 +214,9 @@ class SymconBackup extends IPSModule
     private function updateFormFieldByTime(string $dir)
     {
         $lastBuffer = $this->GetBuffer('LastUpdateFormField');
-        if (time() - $lastBuffer > 2) {
+        if (microtime(true) - $lastBuffer > 0.500) {
             $this->UpdateFormField('Progress', 'caption', $dir);
-            $this->SetBuffer('LastUpdateFormField', time());
+            $this->SetBuffer('LastUpdateFormField', microtime(true));
         }
     }
 
