@@ -76,7 +76,6 @@ class SymconBackup extends IPSModule
             }
             $this->SetStatus(102);
             $this->SetBuffer('LastUpdateFormField', time());
-            $this->SendDebug('Buffer', $this->GetBuffer('LastUpdateFormField'), 0);
             $this->UpdateFormField('Progress', 'visible', true);
             $this->UpdateFormField('Progress', 'caption', IPS_GetKernelDir());
 
@@ -89,19 +88,15 @@ class SymconBackup extends IPSModule
             //get recursive through the dirs and files and copy from local to remote
             $goThrough = $this->copyLocalToServer(IPS_GetKernelDir(), $sftp, $mode, 0);
             if ($goThrough === false) {
-                //$this->SendDebug('Copy files failed', 0, 0);
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
-                //SetMegabytes
-                $this->SendDebug('TotalTransferred', print_r($goThrough, true), 0);
                 $this->SetValue('TransferredMegabytes', $goThrough);
             }
 
             if ($mode == 'IncrementalBackup') {
                 //compare the local files to the server and delete serverfiles if it hasn't a local file
                 if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, '')) {
-                    //$this->SendDebug('Compare Files failed', 0, 0);
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
@@ -135,7 +130,7 @@ class SymconBackup extends IPSModule
         //get the local files
         $files = scandir($dir);
         $files = array_diff($files, ['..', '.']);
-        //$this->SendDebug('FILES', print_r($files, true), 0);
+
         $transferred = 0;
         foreach ($files as $file) {
             if ($this->fileFilter($file)) {
@@ -148,38 +143,28 @@ class SymconBackup extends IPSModule
                 //go deeper
                 $deeper = $this->copyLocalToServer($dir . '/' . $file, $sftp, $mode, $transferred);
                 if ($deeper === false) {
-                    //$this->SendDebug('Fail Copy', $dir . '/' . $file, 0);
                     return false;
                 } else {
                     $transferredMB += $deeper;
-                    $this->SendDebug('Total', print_r($transferredMB, true), 0);
                 }
                 $sftp->chdir('..');
             } else {
                 $this->UpdateFormFieldByTime($dir . '/' . $file);
-                //$this->SendDebug('copy', $dir . '/' . $file, 0);
                 switch ($mode) {
                     case 'FullBackup':
                         //copy the files
-                        //$this->SendDebug('copy full', $dir . '/' . $file, 0);
                         try {
                             $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                             $transferred += $sftp->filesize($file);
-                            $this->SendDebug('File', $file, 0);
-                            $this->SendDebug('Size', $sftp->filesize($file) . 'Byte', 0);
                         } catch (\Throwable $th) {
                             return false;
                         }
                         break;
                     case 'IncrementalBackup':
-                        //$this->SendDebug('pwd', $sftp->pwd(), 0);
                         if (!$sftp->file_exists($sftp->pwd() . '/' . $file)) {
-                            //$this->SendDebug('copy file not exist on server', $dir . '/' . $file, 0);
                             try {
                                 $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                 $transferred += $sftp->filesize($file);
-                                $this->SendDebug('File', $file, 0);
-                                $this->SendDebug('Size', $sftp->filesize($file) . 'Byte', 0);
                             } catch (\Throwable $th) {
                                 return false;
                             }
@@ -188,8 +173,6 @@ class SymconBackup extends IPSModule
                                 try {
                                     $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                     $transferred += $sftp->filesize($file);
-                                    $this->SendDebug('File', $file, 0);
-                                    $this->SendDebug('Size', $sftp->filesize($file) . 'Byte', 0);
                                 } catch (\Throwable $th) {
                                     return false;
                                 }
@@ -199,8 +182,6 @@ class SymconBackup extends IPSModule
                 }
             }
         }
-        $this->SendDebug('Before going up MB', print_r($transferred / 1000000, true) . 'MB', 0);
-        $this->SendDebug('Before going up B', print_r($transferred, true) . 'Byte', 0);
         return $transferredMB + ($transferred / 1000000);
     }
 
@@ -220,10 +201,8 @@ class SymconBackup extends IPSModule
                 } else {
                     //Its a file
                     $this->UpdateFormFieldByTime($dir . '/' . $file['filename']);
-                    //$this->SendDebug('compare', $dir . '/' . $file['filename'], 0);
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //delete file that is not on the local system
-                        //$this->SendDebug('Delete File', $dir . '/' . $file['filename'], 0);
                         return $sftp->delete($dir . '/' . $file['filename']);
                     }
                 }
@@ -237,8 +216,6 @@ class SymconBackup extends IPSModule
     {
         $lastBuffer = $this->GetBuffer('LastUpdateFormField');
         if (time() - $lastBuffer > 2) {
-            //$this->SendDebug('Buffer', $lastBuffer, 0);
-            //$this->SendDebug('Time', time(), 0);
             $this->UpdateFormField('Progress', 'caption', $dir);
             $this->SetBuffer('LastUpdateFormField', time());
         }
