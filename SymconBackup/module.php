@@ -32,7 +32,7 @@ class SymconBackup extends IPSModule
         $this->RegisterVariableInteger('LastFinishedBackup', $this->Translate('Last Finished Backup'), '~UnixTimestamp', 0);
         $this->RegisterVariableFloat('TransferredMegabytes', $this->Translate('Transferred Megabytes'), 'Megabytes.Backup', 0);
 
-        $this->RegisterTimer('UpdateBackup', 0, 'SB_CreateBackup($_IPS[\'TARGET\'])');
+        $this->RegisterTimer('UpdateBackup', 0, 'SB_CreateBackup($_IPS[\'TARGET\']);');
     }
 
     public function Destroy()
@@ -52,26 +52,22 @@ class SymconBackup extends IPSModule
     public function CreateBackup()
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
-            $server = $this->ReadPropertyString('Host');
-            $username = $this->ReadPropertyString('Username');
-            $password = $this->ReadPropertyString('Password');
-
-            //create Connection
-            $sftp = new SFTP($server);
-            if (!$sftp->login($username, $password)) {
+            //Create Connection
+            $sftp = new SFTP($this->ReadPropertyString('Host'));
+            if (!$sftp->login($this->ReadPropertyString('Username'), $this->ReadPropertyString('Password'))) {
                 $this->SetStatus(201);
                 IPS_SemaphoreLeave('CreateBackup');
-                return;
+                return false;
             }
 
-            //Set the base direction on the server
+            //Set the base directory on the remote
             $baseDir = $this->ReadPropertyString('TargetDir');
             if ($baseDir != '') {
                 $sftp->chdir($baseDir);
                 if (ltrim($sftp->pwd(), '/') != $baseDir) {
                     $this->SetStatus(202);
                     IPS_SemaphoreLeave('CreateBackup');
-                    return;
+                    return false;
                 }
             }
             $this->SetStatus(102);
@@ -85,10 +81,10 @@ class SymconBackup extends IPSModule
                 $sftp->mkdir($backupName);
                 $sftp->chdir($backupName);
             }
-            //get recursive through the dirs and files and copy from local to remote
+
+            //Go recursively through the directories and files and copy from local to remote
             $transferred = 0;
-            
-            if ($this->copyLocalToServer(IPS_GetKernelDir(), $sftp, $mode, $transferred)) {
+            if (!$this->copyLocalToRemote(IPS_GetKernelDir(), $sftp, $mode, $transferred)) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
@@ -96,20 +92,23 @@ class SymconBackup extends IPSModule
             }
 
             if ($mode == 'IncrementalBackup') {
-                //compare the local files to the server and delete serverfiles if it hasn't a local file
-                if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, '')) {
+                //Compare the local files to the remote ones and delete remote files if it hasn't a local file
+                if (!$this->compareFilesRemoteToLocal($sftp->pwd(), $sftp, '')) {
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
             }
+
             $this->UpdateFormField('Progress', 'visible', false);
             $this->SetValue('LastFinishedBackup', time());
             $this->setNewTimer();
 
             IPS_SemaphoreLeave('CreateBackup');
         } else {
-            echo $this->Translate('An other Backup is create');
+            echo $this->Translate('An other Backup is already running');
         }
+
+        return true;
     }
 
     public function UIEnableTimer(bool $value)
@@ -125,7 +124,7 @@ class SymconBackup extends IPSModule
         return json_encode($json);
     }
 
-    private function copyLocalToServer(string $dir, SFTP $sftp, string $mode, &$transferred)
+    private function copyLocalToRemote(string $dir, SFTP $sftp, string $mode, &$transferred)
     {
 
         //get the local files
@@ -138,12 +137,10 @@ class SymconBackup extends IPSModule
                 continue;
             }
             if (is_dir($dir . '/' . $file)) {
-                //Create and go to the deeper dir on server
+                //Create directory and go to the deeper directory on remote
                 $sftp->mkdir($file);
                 $sftp->chdir($file);
-                //go deeper
-                $deeper = $this->copyLocalToServer($dir . '/' . $file, $sftp, $mode, $transferred);
-                if ($deeper === false) {
+                if (!$this->copyLocalToRemote($dir . '/' . $file, $sftp, $mode, $transferred)) {
                     return false;
                 }
                 $sftp->chdir('..');
@@ -151,11 +148,11 @@ class SymconBackup extends IPSModule
                 $this->updateFormFieldByTime($dir . '/' . $file);
                 switch ($mode) {
                     case 'FullBackup':
-                        //copy the files
                         try {
                             $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                             $transferred += $sftp->filesize($file);
                         } catch (\Throwable $th) {
+                            $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                             return false;
                         }
                         break;
@@ -165,6 +162,7 @@ class SymconBackup extends IPSModule
                                 $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                 $transferred += $sftp->filesize($file);
                             } catch (\Throwable $th) {
+                                $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                                 return false;
                             }
                         } else {
@@ -173,6 +171,7 @@ class SymconBackup extends IPSModule
                                     $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                     $transferred += $sftp->filesize($file);
                                 } catch (\Throwable $th) {
+                                    $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                                     return false;
                                 }
                             }
@@ -184,25 +183,28 @@ class SymconBackup extends IPSModule
         return true;
     }
 
-    private function compareFilesServerToLocal($dir, $sftp, string $slug)
+    private function compareFilesRemoteToLocal($dir, $sftp, string $slug)
     {
-        $serverList = $sftp->rawlist($dir, false);
-
-        foreach ($serverList as $key => $file) {
+        $remoteList = $sftp->rawlist($dir, false);
+        foreach ($remoteList as $key => $file) {
             if ($key != '.' && $key != '..') {
                 if ($sftp->is_dir($dir . '/' . $file['filename'])) {
-                    //Create and go to the deeper dir on server
+                    //Go to the deeper directory on the remote
                     $sftp->chdir($file['filename']);
-                    //go deeper
-                    if (!$this->compareFilesServerToLocal($sftp->pwd(), $sftp, $slug . '/' . $file['filename'])) {
+                    if (!$this->compareFilesRemoteToLocal($sftp->pwd(), $sftp, $slug . '/' . $file['filename'])) {
                         return false;
                     }
                 } else {
-                    //Its a file
+                    //It is a file we need to check
                     $this->updateFormFieldByTime($dir . '/' . $file['filename']);
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
-                        //delete file that is not on the local system
-                        return $sftp->delete($dir . '/' . $file['filename']);
+                        //Delete file that is not on the local system
+                        try {
+                            $sftp->delete($dir . '/' . $file['filename']);
+                        } catch (\Throwable $th) {
+                            $this->UpdateFormField('Progress', 'caption', $th->getMessage());
+                            return false;
+                        }
                     }
                 }
             }

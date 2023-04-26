@@ -92,7 +92,7 @@
         },
         {
             "type": "Button",
-            "caption": "Create Backup on Server",
+            "caption": "Create Backup",
             "onClick": "SB_CreateBackup($id);"
         }
     ],
@@ -100,12 +100,12 @@
         {
             "code": 201,
             "icon": "error",
-            "caption": "Login information is invalid"
+            "caption": "Username/Password is invalid"
         },
         {
             "code": 202,
             "icon": "error",
-            "caption": "Target Directory is not valid"
+            "caption": "Target Directory is invalid"
         }
     ]
 }
