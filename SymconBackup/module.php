@@ -149,7 +149,7 @@ class SymconBackup extends IPSModule
                 }
                 $sftp->chdir('..');
             } else {
-                $this->UpdateFormFieldByTime($dir . '/' . $file);
+                $this->updateFormFieldByTime($dir . '/' . $file);
                 switch ($mode) {
                     case 'FullBackup':
                         //copy the files
@@ -200,7 +200,7 @@ class SymconBackup extends IPSModule
                     }
                 } else {
                     //Its a file
-                    $this->UpdateFormFieldByTime($dir . '/' . $file['filename']);
+                    $this->updateFormFieldByTime($dir . '/' . $file['filename']);
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //delete file that is not on the local system
                         return $sftp->delete($dir . '/' . $file['filename']);
@@ -212,7 +212,7 @@ class SymconBackup extends IPSModule
         return true;
     }
 
-    private function UpdateFormFieldByTime(string $dir)
+    private function updateFormFieldByTime(string $dir)
     {
         $lastBuffer = $this->GetBuffer('LastUpdateFormField');
         if (time() - $lastBuffer > 2) {

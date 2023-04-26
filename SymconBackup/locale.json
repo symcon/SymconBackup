@@ -10,14 +10,14 @@
             "Update Backup": "Backup updaten",
             "Mode": "Modus",
             "Create Backup on Server": "Backup erstellen",
-            "Daily Update Time": "Tägliche Zeit zum updaten",
-            "Filter Directory": "Gefilterter Ordner",
+            "Daily Update Time": "Tägliche Zeit zum Updaten",
+            "Filter Directory": "Gefilterte Ordner",
             "Directory": "Ordner",
             "Incremental Backup": "Inkrementelles Backup",
             "An other Backup is create": "Ein anderes Backup wird erstellt",
             "Enable Timer": "Timer aktivieren",
             "Expert options": "Expertenoptionen",
-            "Last Finished Backup": "Zuletzt aubgeschlossenes Backup",
+            "Last Finished Backup": "Zuletzt abgeschlossenes Backup",
             "Transferred Megabytes": "Übertragene Megabytes"
         }
     }
