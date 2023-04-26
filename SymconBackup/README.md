@@ -7,7 +7,8 @@ Erstellt ein Backup über SFTP.
 2. [Voraussetzungen](#2-voraussetzungen)
 3. [Software-Installation](#3-software-installation)
 4. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
-5. [PHP-Befehlsreferenz](#5-php-befehlsreferenz)
+5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
+6. [PHP-Befehlsreferenz](#5-php-befehlsreferenz)
 
 ### 1. Funktionsumfang
 
@@ -35,16 +36,29 @@ Name                      | Beschreibung
 Host                      | IP Adresse des Servers
 Benutzername              | Benutzernamen für die SFTP Verbindung 
 Passwort                  | Passwort für die SFTP Verbindung 
-Modus                     | Modus was für ein Backup erstellt werden soll  
+Modus                     | Modus was für ein Backup erstellt werden soll 
+Timer aktivieren          | Aktiviert ein tägliches Update
 Tägliche Zeit zum updaten | Zeit, wann das Update täglich startet  
 Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
+Expertenoptionen          | Filter um bestimmte Ordner nicht zu übertragen
 Backup erstellen          | Button, welcher sofort ein Update startet. 
 
 __Modus__: 
 Vollständiges Backup: Erstellt eine vollständige Kopie in einem seperaten Ordner 
 Inkrementelles Backup: Updatet ein bestehendes Backup. 
 
-### 5. PHP-Befehlsreferenz
+### 5. Statusvariablen und Profile
+
+Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzelner kann zu Fehlfunktionen führen.
+
+#### Statusvariablen
+
+Name             | Typ            | Beschreibung
+---------------- | -------------- | ------------
+Zuletzt abgeschlossenes Backup | Integer | Zeitpunkt, zudem das letzte Backup abgeschlossen wurde
+Übertragene Megabytes          | Float   | Megabytes, welche beim letzten Update übertragen wurde 
+
+### 6. PHP-Befehlsreferenz
 
 `boolean SB_CreateBackup(integer $InstanzID);`
 Erstellt oder updatet ein Backup nach den Einstellungen der Instanz

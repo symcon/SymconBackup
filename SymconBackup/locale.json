@@ -3,7 +3,7 @@
         "de": {
             "Target Direction is not valid": "Zielpfad nicht korrekt",
             "Login information is invalid": "Login Informationen nicht valide",
-            "Target Direction": "Zielordner",
+            "Target Directory": "Zielordner",
             "Password": "Passwort",
             "Username": "Benutzername",
             "Full Backup": "Vollständiges Backup",
@@ -13,7 +13,12 @@
             "Daily Update Time": "Tägliche Zeit zum updaten",
             "Filter Directory": "Gefilterter Ordner",
             "Directory": "Ordner",
-            "Incremental Backup": "Inkrementelles Backup"
+            "Incremental Backup": "Inkrementelles Backup",
+            "An other Backup is create": "Ein anderes Backup wird erstellt",
+            "Enable Timer": "Timer aktivieren",
+            "Expert options": "Expertenoptionen",
+            "Last Finished Backup": "Zuletzt aubgeschlossenes Backup",
+            "Transferred Megabytes": "Übertragene Megabytes"
         }
     }
 }

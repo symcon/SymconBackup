@@ -39,11 +39,6 @@
                     ]
                 },
                 {
-                    "type": "SelectTime",
-                    "name": "DailyUpdateTime",
-                    "caption": "Daily Update Time"
-                },
-                {
                     "type": "ValidationTextBox",
                     "name": "TargetDir",
                     "caption": "Target Directory"
@@ -51,32 +46,50 @@
             ]
         },
         {
-            "type": "List",
-            "name": "FilterDirectory",
-            "caption": "Filter Directory",
-            "add": true,
-            "delete": true,
-            "columns": [
+            "type": "CheckBox",
+            "caption": "Enable Timer",
+            "name": "EnableTimer",
+            "onChange": "SB_UIEnableTimer($id, $EnableTimer);"
+        },
+        {
+            "type": "SelectTime",
+            "name": "DailyUpdateTime",
+            "caption": "Daily Update Time",
+            "visible": false
+        },
+        {
+            "type": "ExpansionPanel",
+            "caption": "Expert options",
+            "items": [
                 {
-                    "caption": "Directory",
-                    "name": "Directory",
-                    "width": "auto",
-                    "add": "",
-                    "edit": {
-                        "type": "ValidationTextBox"
-                    }
+                    "type": "List",
+                    "name": "FilterDirectory",
+                    "caption": "Filter Directory",
+                    "add": true,
+                    "delete": true,
+                    "columns": [
+                        {
+                            "caption": "Directory",
+                            "name": "Directory",
+                            "width": "auto",
+                            "add": "",
+                            "edit": {
+                                "type": "ValidationTextBox"
+                            }
+                        }
+                    ]
                 }
             ]
-        },
+        }
+    ],
+    "actions": [
         {
             "type": "ProgressBar",
             "name": "Progress",
             "indeterminate": true,
             "caption": "Laden...",
             "visible": false
-        }
-    ],
-    "actions": [
+        },
         {
             "type": "Button",
             "caption": "Create Backup on Server",
