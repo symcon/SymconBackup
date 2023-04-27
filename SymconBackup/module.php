@@ -73,7 +73,10 @@ class SymconBackup extends IPSModule
             $this->SetStatus(102);
             $this->SetBuffer('LastUpdateFormField', microtime(true));
             $this->UpdateFormField('Progress', 'visible', true);
-            $this->UpdateFormField('Progress', 'caption', IPS_GetKernelDir());
+
+            $dir = str_replace('\\', '/', IPS_GetKernelDir());
+            $dir = rtrim($dir, '/');
+            $this->UpdateFormField('Progress', 'caption', $dir);
 
             $mode = $this->ReadPropertyString('Mode');
             if ($mode == 'FullBackup') {
@@ -84,7 +87,7 @@ class SymconBackup extends IPSModule
 
             //Go recursively through the directories and files and copy from local to remote
             $transferred = 0;
-            if (!$this->copyLocalToRemote(IPS_GetKernelDir(), $sftp, $mode, $transferred)) {
+            if (!$this->copyLocalToRemote($dir, $sftp, $mode, $transferred)) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
