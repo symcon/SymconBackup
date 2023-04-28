@@ -125,6 +125,11 @@
             "type": "Button",
             "caption": "Create Backup",
             "onClick": "SB_CreateBackup($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "TestConnection",
+            "onClick": "SB_UITestConnection($id);"
         }
     ],
     "status": [
