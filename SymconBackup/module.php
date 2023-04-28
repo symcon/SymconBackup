@@ -12,7 +12,9 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::Create();
 
+        $this->RegisterPropertyString('ConnectionType', 'SFTP');
         $this->RegisterPropertyString('Host', '');
+        $this->RegisterPropertyInteger('Port', 22);
         $this->RegisterPropertyString('Username', '');
         $this->RegisterPropertyString('Password', '');
 
@@ -119,10 +121,29 @@ class SymconBackup extends IPSModule
         $this->UpdateFormField('DailyUpdateTime', 'visible', $value);
     }
 
+    public function UIChangePort(string $value)
+    {
+        if ($this->ReadPropertyInteger('Port') == 21 || $this->ReadPropertyInteger('Port') == 22) {
+            switch ($value) {
+                case 'SFTP':
+                    $value = 22;
+                    break;
+                case 'FTP':
+                case 'FTPS':
+                    $value = 21;
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            $this->UpdateFormField('Port', 'value', $value);
+        }
+    }
+
     public function GetConfigurationForm()
     {
         $json = json_decode(file_get_contents(__DIR__ . '/form.json', true), true);
-        $json['elements'][3]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
+        $json['elements'][4]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
 
         return json_encode($json);
     }

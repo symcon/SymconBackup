@@ -4,10 +4,41 @@
             "type": "RowLayout",
             "items": [
                 {
+                    "type": "Select",
+                    "caption": "Connection Type",
+                    "name": "ConnectionType",
+                    "options": [
+                        {
+                            "caption": "SFTP",
+                            "value": "SFTP"
+                        },
+                        {
+                            "caption": "FTP",
+                            "value": "FTP"
+                        },
+                        {
+                            "caption": "FTPS",
+                            "value": "FTPS"
+                        }
+                    ],
+                    "onChange": "SB_UIChangePort($id, $ConnectionType);" 
+                },
+                {
                     "type": "ValidationTextBox",
                     "name": "Host",
                     "caption": "Host"
                 },
+                {
+                    "type": "NumberSpinner",
+                    "name": "Port",
+                    "caption": "Port",
+                    "minimum": 0
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
                 {
                     "type": "ValidationTextBox",
                     "name": "Username",
