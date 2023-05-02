@@ -157,7 +157,7 @@ class SymconBackup extends IPSModule
     public function UITestConnection()
     {
         $connection = $this->createConnection();
-        if($connection !== false){
+        if ($connection !== false) {
             echo $this->Translate('Connection is valid');
             $connection->disconnect();
             $this->UpdateFormField('Progress', 'visible', false);
