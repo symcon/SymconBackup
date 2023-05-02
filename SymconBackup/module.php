@@ -24,7 +24,10 @@ class SymconBackup extends IPSModule
         $this->RegisterPropertyString('TargetDir', '');
         $this->RegisterPropertyString('DailyUpdateTime', '{"hour":3, "minute": 0, "second": 0}');
         $this->RegisterPropertyBoolean('EnableTimer', false);
+
+        //Expert options
         $this->RegisterPropertyString('FilterDirectory', '');
+        $this->RegisterPropertyInteger('SizeLimit', 20);
 
         if (!IPS_VariableProfileExists('Megabytes.Backup')) {
             //Profil erstellen
@@ -235,6 +238,13 @@ class SymconBackup extends IPSModule
                 $connection->chdir('..');
             } else {
                 $this->updateFormFieldByTime($dir . '/' . $file);
+
+                //check if the file size is higher than the php_memory limit
+                $filesize = filesize($dir . '/' . $file);
+                if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
+                    $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
+                }
+                
                 switch ($mode) {
                     case 'FullBackup':
                         try {
@@ -266,10 +276,23 @@ class SymconBackup extends IPSModule
                             }
                         }
                         break;
-                }
+                    }
             }
         }
         return true;
+    }
+
+    //Source: https://stackoverflow.com/questions/2510434/format-bytes-to-kilobytes-megabytes-gigabytes
+    private function formatBytes($size, $precision = 2)
+    {
+        $base = log($size, 1024);
+        $suffixes = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+        if ($size == 0) {
+            return '0 B';
+        } else {
+            return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+        }
     }
 
     private function compareFilesRemoteToLocal($dir, $connection, string $slug)

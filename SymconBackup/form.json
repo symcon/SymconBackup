@@ -93,6 +93,14 @@
             "caption": "Expert options",
             "items": [
                 {
+                    "type": "NumberSpinner",
+                    
+                    "minimum": 1,
+                    "name": "SizeLimit",
+                    "caption": "Size Limit",
+                    "suffix": "MB"
+                },
+                {
                     "type": "List",
                     "name": "FilterDirectory",
                     "caption": "Filter Directory",
