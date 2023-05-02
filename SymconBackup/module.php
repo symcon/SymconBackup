@@ -244,7 +244,7 @@ class SymconBackup extends IPSModule
                 if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
                     $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
                 }
-                
+
                 switch ($mode) {
                     case 'FullBackup':
                         try {

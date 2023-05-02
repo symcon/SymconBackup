@@ -1,5 +1,5 @@
 # SymconBackup
-Erstellt ein Backup über SFTP.
+Erstellt ein Backup über SFTP, FTP oder FTPS.
 
 ### Inhaltsverzeichnis
 
@@ -12,8 +12,8 @@ Erstellt ein Backup über SFTP.
 
 ### 1. Funktionsumfang
 
-* Erstell ein Backup über SFTP auf einem Server
-* Updatet ein Backup über SFTP auf einem Server
+* Erstell ein Backup über SFTP, FTP oder FTPS auf einem Server
+* Updatet ein Backup über SFTP, FTP oder FTPS auf einem Server
 
 ### 2. Voraussetzungen
 
@@ -56,8 +56,8 @@ Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzeln
 
 #### Statusvariablen
 
-Name             | Typ            | Beschreibung
----------------- | -------------- | ------------
+Name                           | Typ     | Beschreibung
+------------------------------ | ------- | ------------
 Zuletzt abgeschlossenes Backup | Integer | Zeitpunkt, zudem das letzte Backup abgeschlossen wurde
 Übertragene Megabytes          | Float   | Megabytes, welche beim letzten Update übertragen wurde 
 
