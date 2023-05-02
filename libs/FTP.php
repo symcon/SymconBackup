@@ -9,7 +9,9 @@ class FTP
     public function __construct($host, $port)
     {
         $this->connection = ftp_connect($host, $port);
-        return $this->connection;
+        if (!$this->connection) {
+            throw new ErrorException('Error: Host/Port is invalid', 10060);
+        }
     }
 
     public function chdir(string $dir): bool
@@ -29,17 +31,18 @@ class FTP
 
     public function is_dir(string $path): bool
     {
-        if(@ftp_chdir($this->connection,$dir)) { 
-            ftp_cdup($this->connection); 
-            return true; 
-        } else { 
-            return false; 
-        } 
+        //Found there: https://gist.github.com/Dare-NZ/5523650#file-is_dir-php-L37
+        if (@ftp_chdir($this->connection, $dir)) {
+            ftp_cdup($this->connection);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function pwd()
     {
-        return ftp_pwd($this->connection); 
+        return ftp_pwd($this->connection);
     }
 
     public function mkdir(string $dir)

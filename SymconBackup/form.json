@@ -21,7 +21,7 @@
                             "value": "FTPS"
                         }
                     ],
-                    "onChange": "SB_UIChangePort($id, $ConnectionType);" 
+                    "onChange": "SB_UIChangePort($id, $ConnectionType);"
                 },
                 {
                     "type": "ValidationTextBox",
@@ -128,7 +128,7 @@
         },
         {
             "type": "Button",
-            "caption": "TestConnection",
+            "caption": "Test Connection",
             "onClick": "SB_UITestConnection($id);"
         }
     ],
@@ -142,6 +142,11 @@
             "code": 202,
             "icon": "error",
             "caption": "Target Directory is invalid"
+        },
+        {
+            "code": 203,
+            "icon": "error",
+            "caption": "Host/Port is invalid"
         }
     ]
 }

@@ -87,7 +87,7 @@ class SymconBackup extends IPSModule
             if ($baseDir != '') {
                 $connection->chdir($baseDir);
                 if (ltrim($connection->pwd(), '/') != $baseDir) {
-                    $this->SendDebug('Remote dir',$connection->pwd(),0);
+                    $this->SendDebug('Remote dir', $connection->pwd(), 0);
                     $this->SendDebug('Custom dir', $baseDir, 0);
                     $this->SetStatus(202);
                     IPS_SemaphoreLeave('CreateBackup');
@@ -177,27 +177,40 @@ class SymconBackup extends IPSModule
         $password = $this->ReadPropertyString('Password');
         $host = $this->ReadPropertyString('Host');
         $port = $this->ReadPropertyInteger('Port');
-        switch ($this->ReadPropertyString('ConnectionType')) {
-            case 'SFTP':
-                $connection = new SFTP($host, $port);
-                break;
-            case 'FTP':
-                $connection = new FTP($host, $port);
-                break;
-            case 'FTPS':
-                $connection = new FTPS($host, $port);
-                break;
-            default:
-                echo $this->Translate('The Connection Type is undefine');
-                $this->SetStatus(201);
-                break;
+        $this->UpdateFormField('Progress', 'visible', true);
+        $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
+        try {
+            switch ($this->ReadPropertyString('ConnectionType')) {
+                case 'SFTP':
+                    $connection = new SFTP($host, $port);
+                    break;
+                case 'FTP':
+                    $connection = new FTP($host, $port);
+                    break;
+                case 'FTPS':
+                    $connection = new FTPS($host, $port);
+                    break;
+                default:
+                    echo $this->Translate('The Connection Type is undefine');
+                    $this->SetStatus(201);
+                    break;
+            }
+        } catch (\Throwable $th) {
+            //Throw than the initial of FTP or FTPS connection failed
+            $this->UpdateFormField('Progress', 'caption', $this->Translate($th->getMessage()));
+            echo $this->Translate($th->getMessage());
+            $this->SetStatus(203);
+            return false;
         }
-        if ($connection === false || $connection->login($username, $password) === false) {
+        if ($connection->login($username, $password) === false) {
+            echo $this->Translate('Connection is invalid.') . "\n" . $this->Translate('Username/Password is invalid');
             $this->SetStatus(201);
             return false;
         } else {
             echo $this->Translate('Connection is valid');
             $connection->disconnect();
+            $this->UpdateFormField('Progress', 'visible', false);
+            $this->SetStatus(102);
         }
     }
 
