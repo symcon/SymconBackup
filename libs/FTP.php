@@ -16,17 +16,29 @@ class FTP
 
     public function chdir(string $dir): bool
     {
-        return ftp_chdir($this->connection, $dir);
+        $result = @ftp_chdir($this->connection, $dir);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function rawlist(string $dir = '.'): mixed
     {
-        return ftp_rawlist($this->connection, $dir);
+        $result = @ftp_rawlist($this->connection, $dir);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function delete(string $path): bool
     {
-        return ftp_delete($this->connection, $path);
+        $result = @ftp_delete($this->connection, $path);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function is_dir(string $path): bool
@@ -42,36 +54,64 @@ class FTP
 
     public function pwd()
     {
-        return ftp_pwd($this->connection);
+        $result = @ftp_pwd($this->connection);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function mkdir(string $dir)
     {
-        return ftp_mkdir($this->connection, $dir);
+        $result = @ftp_mkdir($this->connection, $dir);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function put(string $remote_file, string $data): bool
     {
-        return ftp_put($this->connection, $remote_file, $data);
+        $result = @ftp_put($this->connection, $remote_file, $data);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function filesize(string $path)
     {
-        return ftp_size($this->connection, $path);
+        $result = @ftp_size($this->connection, $path);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function filemtime(string $path)
     {
-        return ftp_mdtm($this->connection, $path);
+        $result = @ftp_mdtm($this->connection, $path);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function login(string $username, string $password)
     {
-        return ftp_login($this->connection, $username, $password);
+        $result = @ftp_login($this->connection, $username, $password);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 
     public function disconnect()
     {
-        return ftp_close($this->connection);
+        $result = @ftp_close($this->connection);
+        if ($result === false) {
+            throw new Exception(error_get_last()['message']);
+        }
+        return $result;
     }
 }
