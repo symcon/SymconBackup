@@ -52,6 +52,18 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::ApplyChanges();
 
+        //Validate connection
+        $connection = $this->createConnection();
+        if($connection === false){
+            return;
+        }
+
+        
+        if(!$connection->is_dir($this->ReadPropertyString('TargetDir'))){
+            $this->SetStatus(202);
+            return;
+        }
+
         $this->setNewTimer();
     }
 
