@@ -23,13 +23,51 @@ class FTP
         return $result;
     }
 
-    public function rawlist(string $dir = '.'): mixed
+    public function rawlist(string $dir = '.')
     {
         $result = @ftp_rawlist($this->connection, $dir);
         if ($result === false) {
             throw new Exception(error_get_last()['message']);
         }
-        return $result;
+        //Prepare Result to match to the SFTP Structure
+        $dump = [];
+        foreach ($result as $value) {
+            $info = preg_split("/[\s]+/", $value, 9);
+            /*
+            Array like SFTP:
+            [
+                    'size' => 1184,
+                    'uid' => 0,
+                    'gid' => 0,
+                    'mode' => 16895,
+                    'type' => 2,
+                    'atime' => 1683017468,
+                    'mtime' => 1682521030,
+                    'filename' => 'Public',
+            ]
+            Same in FTP:
+            drwxrwxrwx   1 root     root             1184 Apr 26 14:57 Public
+             */
+            $type = $info[0][0] == 'd' ? '0100' : '0110';
+
+            $mode = substr($info[0], 1);
+            $mode = str_replace('-', '0', $mode);
+            $mode = str_replace('r', '1', $mode);
+            $mode = str_replace('w', '1', $mode);
+            $mode = str_replace('x', '1', $mode);
+            $mode = bindec($type . '000' . $mode);
+            
+
+            array_push($dump, [
+                'size'     => $info[4],
+                'mode'     => $mode,
+                'type'     => $type == '0100' ? 2 : 1,
+                //TODO Time ist not good
+                'mtime'    => strtotime(' ' . $info[5] . ' ' . $info[6] . ' ' . $info[7]),
+                'filename' => $info[8],
+            ]);
+        }
+        return $dump;
     }
 
     public function delete(string $path): bool

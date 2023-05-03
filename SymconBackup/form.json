@@ -72,7 +72,76 @@
                 {
                     "type": "ValidationTextBox",
                     "name": "TargetDir",
-                    "caption": "Target Directory"
+                    "caption": "Target Directory",
+                    "value": ""
+                },
+                {
+                    "type": "PopupButton",
+                    "caption": "Select directory",
+                    "onClick": "SB_UILoadDir($id, '', $Host, $Port, $Username, $Password);",
+                    "popup": {
+                        "buttons": [
+                            {
+                                "type": "Button",
+                                "caption": "Select directory !!TODO OnClick",
+                                "onClick": [
+                                    "SB_UISelectDir(",
+                                    "$id, ",
+                                    "isset($SelectTargetDirectory['SelectedDirectory']) ? $CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'] : $CurrentDir,",
+                                    "$Host,",
+                                    "$Port, ",
+                                    "$Username,",
+                                    " $Password",
+                                    ");"
+                                ]
+                            }
+                        ],
+                        "items": [
+                            {
+                                "type": "ValidationTextBox",
+                                "name": "CurrentDir",
+                                "caption": "Current Directory",
+                                "value": "",
+                                "enabled": false
+                            },
+                            {
+                                "type": "List",
+                                "name": "SelectTargetDirectory",
+                                "caption": "Select Target Directory",
+                                "columns": [
+                                    {
+                                        "caption": "Directory",
+                                        "name": "SelectedDirectory",
+                                        "width": "auto",
+                                        "add": 0,
+                                        "confirm": "Go into this Directory?"
+                                    },
+                                    {
+                                        "onClick": "SB_UIGoDeeper($id,$CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'],$Host, $Port, $Username, $Password);",
+                                        "caption": "Go into the Directory",
+                                        "name": "DeeperDir",
+                                        "width": "75px",
+                                        "add": 0
+                                    }
+                                ],
+                                "values": [
+                                    {
+                                        "SelectedDirectory": "Something",
+                                        "DeeperDir": "V"
+                                    },
+                                    {
+                                        "SelectedDirectory": "Is",
+                                        "DeeperDir": "V"
+                                    },
+                                    {
+                                        "SelectedDirectory": "Wrong",
+                                        "DeeperDir": "V"
+                                    }
+                                ]
+                            }
+                        ],
+                        "caption": "Select the target directory"
+                    }
                 }
             ]
         },

@@ -35,7 +35,6 @@ class SymconBackup extends IPSModule
             IPS_SetVariableProfileDigits('Megabytes.Backup', 2);
             IPS_SetVariableProfileText('Megabytes.Backup', '', ' MB');
         }
-
         $this->RegisterVariableInteger('LastFinishedBackup', $this->Translate('Last Finished Backup'), '~UnixTimestamp', 0);
         $this->RegisterVariableFloat('TransferredMegabytes', $this->Translate('Transferred Megabytes'), 'Megabytes.Backup', 0);
 
@@ -70,9 +69,7 @@ class SymconBackup extends IPSModule
             $baseDir = $this->ReadPropertyString('TargetDir');
             if ($baseDir != '') {
                 $connection->chdir($baseDir);
-                if (ltrim($connection->pwd(), '/') != $baseDir) {
-                    $this->SendDebug('Remote dir', $connection->pwd(), 0);
-                    $this->SendDebug('Custom dir', $baseDir, 0);
+                if ($connection->pwd() != $baseDir) {
                     $this->SetStatus(202);
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
@@ -146,8 +143,55 @@ class SymconBackup extends IPSModule
         }
     }
 
+    public function UISelectDir(string $value, string $host, int $port, string $username, string $password)
+    {
+        $this->SendDebug('Value', $value , 0);
+        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection->chdir($value);
+        $this->UpdateFormField('TargetDir', 'value', $connection->pwd());
+        $this->UpdateFormField('CurrentDir', 'value', '');
+        $connection->disconnect();
+    }
+
+    public function UILoadDir(string $dir, string $host, int $port, string $username, string $password)
+    {
+        $connection = $this->createConnection($host, $port, $username, $password);
+        $dirs = [];
+        //Initial is '..' to handle a go up if $dir != '/'
+        if ($dir != '' && $dir != '/') {
+            array_push($dirs, [
+                'SelectedDirectory' => '..',
+                'DeeperDir'         => 'V'
+            ]);
+        }
+        $list = $connection->rawlist($dir);
+        foreach ($list as $entry) {
+            if ($entry['type'] == 2 &&
+                ($entry['filename'] != '.' && $entry['filename'] != '..')
+            ) {
+                array_push($dirs, [
+                    'SelectedDirectory' => $entry['filename'],
+                    'DeeperDir'         => 'V'
+                ]);
+            }
+        }
+        $this->UpdateFormField('SelectTargetDirectory', 'values', json_encode($dirs));
+        $connection->disconnect();
+    }
+
+    public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
+    {
+        $connection = $this->createConnection();
+        $connection->chdir($value);
+        $this->UILoadDir($connection->pwd(), $host, $port, $username, $password);
+        $this->UpdateFormField('CurrentDir', 'value', $connection->pwd());
+
+        $connection->disconnect();
+    }
+
     public function GetConfigurationForm()
     {
+        $this->SetBuffer('TargetDirection', '');
         $json = json_decode(file_get_contents(__DIR__ . '/form.json', true), true);
         $json['elements'][4]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
 
@@ -330,15 +374,25 @@ class SymconBackup extends IPSModule
         return false;
     }
 
-    private function createConnection()
+    private function createConnection(string $host = '', int $port = -1, string $username = '', string $password = '')
     {
-        //Create Connection
-        $username = $this->ReadPropertyString('Username');
-        $password = $this->ReadPropertyString('Password');
-        $host = $this->ReadPropertyString('Host');
-        $port = $this->ReadPropertyInteger('Port');
+        //Initial values if empty
+        if ($host == '') {
+            $host = $this->ReadPropertyString('Host');
+        }
+        if ($port == -1) {
+            $port = $this->ReadPropertyInteger('Port');
+        }
+        if ($username == '') {
+            $username = $this->ReadPropertyString('Username');
+        }
+        if ($password == '') {
+            $password = $this->ReadPropertyString('Password');
+        }
+
         $this->UpdateFormField('Progress', 'visible', true);
         $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
+        //Create Connection
         try {
             switch ($this->ReadPropertyString('ConnectionType')) {
                 case 'SFTP':
