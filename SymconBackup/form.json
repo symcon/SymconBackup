@@ -124,20 +124,7 @@
                                         "add": 0
                                     }
                                 ],
-                                "values": [
-                                    {
-                                        "SelectedDirectory": "Something",
-                                        "DeeperDir": "V"
-                                    },
-                                    {
-                                        "SelectedDirectory": "Is",
-                                        "DeeperDir": "V"
-                                    },
-                                    {
-                                        "SelectedDirectory": "Wrong",
-                                        "DeeperDir": "V"
-                                    }
-                                ]
+                                "values": []
                             }
                         ],
                         "caption": "Select the target directory"
@@ -191,11 +178,27 @@
     ],
     "actions": [
         {
-            "type": "ProgressBar",
-            "name": "Progress",
-            "indeterminate": true,
-            "caption": "Laden...",
-            "visible": false
+            "type": "PopupAlert",
+            "name": "ProgressAlert",
+            "visible": false,
+            "popup": {
+                "closeCaption": "Ok",
+                "items": [
+                    {
+                        "type": "Label",
+                        "name": "InformationLabel",
+                        "caption": "",
+                        "visible": true
+                    },
+                    {
+                        "type": "ProgressBar",
+                        "name": "Progress",
+                        "indeterminate": true,
+                        "caption": "Laden...",
+                        "visible": true
+                    }
+                ]
+            }
         },
         {
             "type": "Button",

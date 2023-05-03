@@ -89,6 +89,8 @@ class SymconBackup extends IPSModule
             $this->SetStatus(102);
             $this->SetBuffer('LastUpdateFormField', microtime(true));
             $this->UpdateFormField('Progress', 'visible', true);
+            $this->UpdateFormField('ProgressAlert', 'visible', true);
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Create Backup now'));
 
             $dir = str_replace('\\', '/', IPS_GetKernelDir());
             $dir = rtrim($dir, '/');
@@ -119,6 +121,7 @@ class SymconBackup extends IPSModule
             }
 
             $this->UpdateFormField('Progress', 'visible', false);
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup ist abgeschlossen'));
             $this->SetValue('LastFinishedBackup', time());
             $this->setNewTimer();
 
@@ -210,11 +213,12 @@ class SymconBackup extends IPSModule
 
     public function UITestConnection()
     {
+        $this->UpdateFormField('ProgressAlert', 'visible', true);
         $connection = $this->createConnection();
         if ($connection !== false) {
-            echo $this->Translate('Connection is valid');
-            $connection->disconnect();
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Connection is valid'));
             $this->UpdateFormField('Progress', 'visible', false);
+            $connection->disconnect();
             $this->SetStatus(102);
         }
     }
@@ -253,7 +257,8 @@ class SymconBackup extends IPSModule
                             $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                             $transferred += $connection->filesize($file);
                         } catch (\Throwable $th) {
-                            $this->UpdateFormField('Progress', 'caption', $th->getMessage());
+                            $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
+                            $this->UpdateFormField('Progress', 'visible', false);
                             return false;
                         }
                         break;
@@ -263,7 +268,8 @@ class SymconBackup extends IPSModule
                                 $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                 $transferred += $connection->filesize($file);
                             } catch (\Throwable $th) {
-                                $this->UpdateFormField('Progress', 'caption', $th->getMessage());
+                                $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
+                                $this->UpdateFormField('Progress', 'visible', false);
                                 return false;
                             }
                         } else {
@@ -272,7 +278,8 @@ class SymconBackup extends IPSModule
                                     $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                     $transferred += $connection->filesize($file);
                                 } catch (\Throwable $th) {
-                                    $this->UpdateFormField('Progress', 'caption', $th->getMessage());
+                                    $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
+                                    $this->UpdateFormField('Progress', 'visible', false);
                                     return false;
                                 }
                             }
@@ -316,7 +323,8 @@ class SymconBackup extends IPSModule
                         try {
                             $connection->delete($dir . '/' . $file['filename']);
                         } catch (\Throwable $th) {
-                            $this->UpdateFormField('Progress', 'caption', $th->getMessage());
+                            $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
+                            $this->UpdateFormField('Progress', 'visible', false);
                             return false;
                         }
                     }
@@ -425,13 +433,15 @@ class SymconBackup extends IPSModule
             }
         } catch (\Throwable $th) {
             //Throw than the initial of FTP or FTPS connection failed
-            $this->UpdateFormField('Progress', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('Progress', 'visible', false);
             echo $this->Translate($th->getMessage());
             $this->SetStatus(203);
             return false;
         }
         if ($connection->login($username, $password) === false) {
-            echo $this->Translate('Connection is invalid.') . "\n" . $this->Translate('Username/Password is invalid');
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('Progress', 'visible', false);
             $this->SetStatus(201);
             return false;
         }
