@@ -121,7 +121,7 @@ class SymconBackup extends IPSModule
             }
 
             $this->UpdateFormField('Progress', 'visible', false);
-            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup ist abgeschlossen'));
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
             $this->SetValue('LastFinishedBackup', time());
             $this->setNewTimer();
 
@@ -174,7 +174,7 @@ class SymconBackup extends IPSModule
         if ($dir != '' && $dir != '/') {
             array_push($dirs, [
                 'SelectedDirectory' => '..',
-                'DeeperDir'         => 'V'
+                'DeeperDir'         => html_entity_decode('	&#11173;'),
             ]);
         }
         $list = $connection->rawlist($dir);
@@ -184,7 +184,7 @@ class SymconBackup extends IPSModule
             ) {
                 array_push($dirs, [
                     'SelectedDirectory' => $entry['filename'],
-                    'DeeperDir'         => 'V'
+                    'DeeperDir'         => html_entity_decode('&#11169;')
                 ]);
             }
         }

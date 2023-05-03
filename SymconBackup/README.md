@@ -40,9 +40,12 @@ Benutzername              | Benutzernamen für die SFTP Verbindung
 Passwort                  | Passwort für die SFTP Verbindung 
 Modus                     | Modus was für ein Backup erstellt werden soll 
 Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
+Suche Zielordner          | Durch die Ordner browsen und ein valider Pfad kann erstellt werden
 Timer aktivieren          | Aktiviert ein tägliches Update
 Tägliche Zeit zum updaten | Zeit, wann das Update täglich startet  
-Expertenoptionen          | Filter um bestimmte Ordner nicht zu übertragen
+Expertenoptionen          | -
+Größen Limit              | Ist eine Datei Größer als dieses Limit wird sie ignoriert
+Gefilterte Ordner         | Filter um bestimmte Ordner nicht zu übertragen
 Backup erstellen          | Button, welcher sofort ein Update startet. 
 Verbindung testen         | Testet, ob eine Verbindung hergestellt werden kann
 

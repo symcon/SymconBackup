@@ -83,7 +83,7 @@
                         "buttons": [
                             {
                                 "type": "Button",
-                                "caption": "Select directory !!TODO OnClick",
+                                "caption": "Select directory",
                                 "onClick": [
                                     "SB_UISelectDir(",
                                     "$id, ",
@@ -118,7 +118,7 @@
                                     },
                                     {
                                         "onClick": "SB_UIGoDeeper($id,$CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'],$Host, $Port, $Username, $Password);",
-                                        "caption": "Go into the Directory",
+                                        "caption": "Go into",
                                         "name": "DeeperDir",
                                         "width": "75px",
                                         "add": 0
