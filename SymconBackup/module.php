@@ -54,12 +54,11 @@ class SymconBackup extends IPSModule
 
         //Validate connection
         $connection = $this->createConnection();
-        if($connection === false){
+        if ($connection === false) {
             return;
         }
 
-        
-        if(!$connection->is_dir($this->ReadPropertyString('TargetDir'))){
+        if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
             $this->SetStatus(202);
             return;
         }
@@ -157,7 +156,6 @@ class SymconBackup extends IPSModule
 
     public function UISelectDir(string $value, string $host, int $port, string $username, string $password)
     {
-        $this->SendDebug('Value', $value , 0);
         $connection = $this->createConnection($host, $port, $username, $password);
         $connection->chdir($value);
         $this->UpdateFormField('TargetDir', 'value', $connection->pwd());
@@ -343,10 +341,14 @@ class SymconBackup extends IPSModule
         if ($this->ReadPropertyBoolean('EnableTimer')) {
             //Time for the next update
             $time = json_decode($this->ReadPropertyString('DailyUpdateTime'), true);
-            if ($time) {
+            $dayTime = $time['hour'] * 3600 + $time['minute'] * 60 + $time['second'];
+            $currentTime = intval(date('H')) * 3600 + intval(date('i')) * 60 + intval(date('s'));
+            if ($dayTime < $currentTime) {
                 $next = strtotime('tomorrow ' . $time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
-                $this->SetTimerInterval('UpdateBackup', ($next - time()) * 1000);
+            } else {
+                $next = strtotime($time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
             }
+            $this->SetTimerInterval('UpdateBackup', ($next - time()) * 1000);
         } else {
             $this->SetTimerInterval('UpdateBackup', 0);
         }
