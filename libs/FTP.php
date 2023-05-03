@@ -56,7 +56,6 @@ class FTP
             $mode = str_replace('w', '1', $mode);
             $mode = str_replace('x', '1', $mode);
             $mode = bindec($type . '000' . $mode);
-            
 
             array_push($dump, [
                 'size'     => $info[4],
