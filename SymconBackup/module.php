@@ -63,6 +63,8 @@ class SymconBackup extends IPSModule
                 $this->SetStatus(202);
                 return;
             }
+
+            $this->SetStatus(102);
         }
 
         $this->setNewTimer();
@@ -88,7 +90,10 @@ class SymconBackup extends IPSModule
                     return false;
                 }
             }
+
+            // Ensure the instance is active to prevent event control from reapplying
             $this->SetStatus(102);
+
             $this->SetBuffer('LastUpdateFormField', microtime(true));
             $this->UpdateFormField('Progress', 'visible', true);
             $this->UpdateFormField('ProgressAlert', 'visible', true);
