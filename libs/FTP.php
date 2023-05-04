@@ -81,7 +81,7 @@ class FTP
     public function is_dir(string $path): bool
     {
         //Found there: https://gist.github.com/Dare-NZ/5523650#file-is_dir-php-L37
-        if (@ftp_chdir($this->connection, $dir)) {
+        if (@ftp_chdir($this->connection, $path)) {
             ftp_cdup($this->connection);
             return true;
         } else {
