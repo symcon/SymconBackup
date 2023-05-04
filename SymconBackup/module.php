@@ -185,6 +185,9 @@ class SymconBackup extends IPSModule
     public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password)
     {
         $connection = $this->createConnection($host, $port, $username, $password);
+        if ($connection === false) {
+            return false;
+        }
         $connection->chdir($value);
         $this->UpdateFormField('TargetDir', 'value', $connection->pwd());
         $connection->disconnect();
@@ -193,6 +196,9 @@ class SymconBackup extends IPSModule
     public function UILoadDir(string $dir, string $host, int $port, string $username, string $password)
     {
         $connection = $this->createConnection($host, $port, $username, $password);
+        if ($connection === false) {
+            return false;
+        }
         $dirs = [];
         //Initial is '..' to handle a go up if $dir != '/'
         if ($dir != '' && $dir != '/') {
@@ -219,6 +225,9 @@ class SymconBackup extends IPSModule
     public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
     {
         $connection = $this->createConnection();
+        if ($connection === false) {
+            return false;
+        }
         $connection->chdir($value);
         $this->UILoadDir($connection->pwd(), $host, $port, $username, $password);
         $this->UpdateFormField('CurrentDir', 'value', $connection->pwd());
