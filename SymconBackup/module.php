@@ -186,7 +186,7 @@ class SymconBackup extends IPSModule
 
     public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -197,7 +197,7 @@ class SymconBackup extends IPSModule
 
     public function UILoadDir(string $dir, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -226,7 +226,7 @@ class SymconBackup extends IPSModule
 
     public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -514,7 +514,7 @@ class SymconBackup extends IPSModule
         );
     }
 
-    private function createConnectionEx(string $host, int $port, string $username, string $password, bool $test)
+    private function createConnectionEx(string $host, int $port, string $username, string $password, bool $showError)
     {
         $this->UpdateFormField('Progress', 'visible', true);
         $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
@@ -539,7 +539,7 @@ class SymconBackup extends IPSModule
             //Throw than the initial of FTP or FTPS connection failed
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            if ($test) {
+            if ($showError) {
                 echo $this->Translate($th->getMessage());
             } else {
                 $this->SetStatus(203);
@@ -549,7 +549,7 @@ class SymconBackup extends IPSModule
         if ($connection->login($username, $password) === false) {
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            if (!$test) {
+            if (!$showError) {
                 $this->SetStatus(201);
             }
             return false;
