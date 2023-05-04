@@ -100,11 +100,13 @@ class FTP
 
     public function mkdir(string $dir)
     {
-        $result = @ftp_mkdir($this->connection, $dir);
-        if ($result === false) {
-            throw new Exception(error_get_last()['message']);
+        if (!$this->is_dir($dir)) {
+            $result = @ftp_mkdir($this->connection, $dir);
+            if ($result === false) {
+                throw new Exception(error_get_last()['message']);
+            }
+            return $result;
         }
-        return $result;
     }
 
     public function put(string $remote_file, string $data): bool
@@ -132,6 +134,16 @@ class FTP
             throw new Exception(error_get_last()['message']);
         }
         return $result;
+    }
+
+    public function file_exists($path)
+    {
+        $result = ftp_size($this->connection, $path);
+        if ($result != -1) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public function login(string $username, string $password)

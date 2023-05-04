@@ -103,9 +103,28 @@ class SymconBackup extends IPSModule
                 $connection->chdir($backupName);
             }
 
+            //Get the total number of the files to copy
+            $totalFiles = 0;
+            switch ($mode) {
+                case 'IncrementalBackup':
+                    //Get the file number what should delete
+                    $totalFiles += $this->getDeletableFiles($connection, $baseDir, $dir);
+                    //Need the files that copy to remote too
+                    // No break. Add additional comment above this line if intentional
+                case 'FullBackup':
+                    //Get the files to copy
+                    $totalFiles += $this->getNumberOfFiles($connection, $dir, $mode);
+                    break;
+
+            }
+            $this->UpdateFormField('Progress', 'indeterminate', false);
+            $this->UpdateFormField('Progress', 'maximum', $totalFiles);
+
             //Go recursively through the directories and files and copy from local to remote
             $transferred = 0;
-            if (!$this->copyLocalToRemote($dir, $connection, $mode, $transferred)) {
+            $passedFiles = 0;
+            if (!$this->copyLocalToRemote($dir, $connection, $mode, $transferred,
+            $passedFiles)) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
@@ -114,12 +133,13 @@ class SymconBackup extends IPSModule
 
             if ($mode == 'IncrementalBackup') {
                 //Compare the local files to the remote ones and delete remote files if it hasn't a local file
-                if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, '')) {
+                if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, '', $passedFiles)) {
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
             }
 
+            $this->UpdateFormField('Progress', 'indeterminate', true);
             $this->UpdateFormField('Progress', 'visible', false);
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
             $this->SetValue('LastFinishedBackup', time());
@@ -202,7 +222,6 @@ class SymconBackup extends IPSModule
         $connection->chdir($value);
         $this->UILoadDir($connection->pwd(), $host, $port, $username, $password);
         $this->UpdateFormField('CurrentDir', 'value', $connection->pwd());
-
         $connection->disconnect();
     }
 
@@ -227,7 +246,66 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function copyLocalToRemote(string $dir, $connection, string $mode, & $transferred)
+    private function getDeletableFiles($connection, $remoteDir, $localDir)
+    {
+        $remoteList = $connection->rawlist($remoteDir);
+        $files = 0;
+        foreach ($remoteList as $key => $file) {
+            if ($key != '.' && $key != '..') {
+                if ($connection->is_dir($remoteDir . '/' . $file['filename'])) {
+                    //Go to the deeper directory on the remote
+                    $connection->chdir($file['filename']);
+                    $files = $this->getDeletableFiles($connection, $connection->pwd(), $localDir . '/' . $file['filename']) + $files;
+                    $connection->chdir('..');
+                } else {
+                    //It is a file we need to check
+                    if (!file_exists(IPS_GetKernelDir() . '/' . $localDir . '/' . $file['filename'])) {
+                        $files++;
+                    }
+                }
+            }
+        }
+        return $files;
+    }
+
+    private function getNumberOfFiles($connection, $dir, $mode)
+    {
+        //get the local files
+        $files = scandir($dir);
+        $files = array_diff($files, ['..', '.']);
+        $numberOf = 0;
+
+        foreach ($files as $file) {
+            if ($this->fileFilter($file)) {
+                continue;
+            }
+            if (is_dir($dir . '/' . $file)) {
+                //Create directory and go to the deeper directory on remote
+                $numberOf = $this->getNumberOfFiles($connection, $dir . '/' . $file, $mode) + $numberOf;
+            } else {
+                //check if the file size is higher than the php_memory limit
+                $filesize = filesize($dir . '/' . $file);
+                if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
+                    $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
+                    continue;
+                }
+
+                switch ($mode) {
+                    case 'FullBackup':
+                        $numberOf++;
+                        break;
+                    case 'IncrementalBackup':
+                        if (!$connection->file_exists($connection->pwd() . '/' . $file) || (filemtime($dir . '/' . $file) > $connection->filemtime($file))) {
+                            $numberOf++;
+                        }
+                        break;
+                }
+            }
+        }
+        return $numberOf;
+    }
+
+    private function copyLocalToRemote(string $dir, $connection, string $mode, &$transferred, &$passedFiles)
     {
 
         //get the local files
@@ -242,7 +320,7 @@ class SymconBackup extends IPSModule
                 //Create directory and go to the deeper directory on remote
                 $connection->mkdir($file);
                 $connection->chdir($file);
-                if (!$this->copyLocalToRemote($dir . '/' . $file, $connection, $mode, $transferred)) {
+                if (!$this->copyLocalToRemote($dir . '/' . $file, $connection, $mode, $transferred, $passedFiles)) {
                     return false;
                 }
                 $connection->chdir('..');
@@ -260,6 +338,8 @@ class SymconBackup extends IPSModule
                         try {
                             $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                             $transferred += $connection->filesize($file);
+                            $passedFiles++;
+                            $this->UpdateFormField('Progress', 'current', $passedFiles);
                         } catch (\Throwable $th) {
                             $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
                             $this->UpdateFormField('Progress', 'visible', false);
@@ -271,6 +351,8 @@ class SymconBackup extends IPSModule
                             try {
                                 $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                 $transferred += $connection->filesize($file);
+                                $passedFiles++;
+                                $this->UpdateFormField('Progress', 'current', $passedFiles);
                             } catch (\Throwable $th) {
                                 $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
                                 $this->UpdateFormField('Progress', 'visible', false);
@@ -281,6 +363,8 @@ class SymconBackup extends IPSModule
                                 try {
                                     $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
                                     $transferred += $connection->filesize($file);
+                                    $passedFiles++;
+                                    $this->UpdateFormField('Progress', 'current', $passedFiles);
                                 } catch (\Throwable $th) {
                                     $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
                                     $this->UpdateFormField('Progress', 'visible', false);
@@ -308,7 +392,7 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function compareFilesRemoteToLocal($dir, $connection, string $slug)
+    private function compareFilesRemoteToLocal($dir, $connection, string $slug, &$passedFiles)
     {
         $remoteList = $connection->rawlist($dir, false);
         foreach ($remoteList as $key => $file) {
@@ -316,7 +400,7 @@ class SymconBackup extends IPSModule
                 if ($connection->is_dir($dir . '/' . $file['filename'])) {
                     //Go to the deeper directory on the remote
                     $connection->chdir($file['filename']);
-                    if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, $slug . '/' . $file['filename'])) {
+                    if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, $slug . '/' . $file['filename'], $passedFiles)) {
                         return false;
                     }
                 } else {
@@ -326,6 +410,8 @@ class SymconBackup extends IPSModule
                         //Delete file that is not on the local system
                         try {
                             $connection->delete($dir . '/' . $file['filename']);
+                            $passedFiles++;
+                            $this->UpdateFormField('Progress', 'current', $passedFiles);
                         } catch (\Throwable $th) {
                             $this->UpdateFormField('InformationLabel', 'caption', $th->getMessage());
                             $this->UpdateFormField('Progress', 'visible', false);
