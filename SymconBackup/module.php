@@ -500,7 +500,7 @@ class SymconBackup extends IPSModule
         $path = mb_strtolower($path);
 
         // Calculate offset
-        $offset = strlen($this->getDataDir());
+        $offset = strlen($this->getDataDir()) + 1 /* trailing slash */;
 
         //Some faulty scripts can produce invalid filenames that start with a backslash.
         if ($path[$offset] == '\\') {
