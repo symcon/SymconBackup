@@ -72,7 +72,63 @@
                 {
                     "type": "ValidationTextBox",
                     "name": "TargetDir",
-                    "caption": "Target Directory"
+                    "caption": "Target Directory",
+                    "value": ""
+                },
+                {
+                    "type": "PopupButton",
+                    "caption": "Select directory",
+                    "onClick": "SB_UISelectDir($id, $Host, $Port, $Username, $Password);",
+                    "popup": {
+                        "buttons": [
+                            {
+                                "type": "Button",
+                                "caption": "Assume",
+                                "onClick": [
+                                    "SB_UIAssumeDir(",
+                                    "$id, ",
+                                    "isset($SelectTargetDirectory['SelectedDirectory']) ? $CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'] : $CurrentDir,",
+                                    "$Host,",
+                                    "$Port, ",
+                                    "$Username,",
+                                    " $Password",
+                                    ");"
+                                ]
+                            }
+                        ],
+                        "items": [
+                            {
+                                "type": "ValidationTextBox",
+                                "name": "CurrentDir",
+                                "caption": "Current Directory",
+                                "value": "",
+                                "enabled": false
+                            },
+                            {
+                                "type": "List",
+                                "name": "SelectTargetDirectory",
+                                "caption": "Select Target Directory",
+                                "columns": [
+                                    {
+                                        "caption": "Directory",
+                                        "name": "SelectedDirectory",
+                                        "width": "auto",
+                                        "add": 0,
+                                        "confirm": "Go into this Directory?"
+                                    },
+                                    {
+                                        "onClick": "SB_UIGoDeeper($id,$CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'],$Host, $Port, $Username, $Password);",
+                                        "caption": "Go into",
+                                        "name": "DeeperDir",
+                                        "width": "75px",
+                                        "add": 0
+                                    }
+                                ],
+                                "values": []
+                            }
+                        ],
+                        "caption": "Select the target directory"
+                    }
                 }
             ]
         },
@@ -85,7 +141,7 @@
         {
             "type": "SelectTime",
             "name": "DailyUpdateTime",
-            "caption": "Daily Update Time",
+            "caption": "Daily at",
             "visible": false
         },
         {
@@ -122,11 +178,27 @@
     ],
     "actions": [
         {
-            "type": "ProgressBar",
-            "name": "Progress",
-            "indeterminate": true,
-            "caption": "Laden...",
-            "visible": false
+            "type": "PopupAlert",
+            "name": "ProgressAlert",
+            "visible": false,
+            "popup": {
+                "closeCaption": "Ok",
+                "items": [
+                    {
+                        "type": "Label",
+                        "name": "InformationLabel",
+                        "caption": "",
+                        "visible": true
+                    },
+                    {
+                        "type": "ProgressBar",
+                        "name": "Progress",
+                        "indeterminate": true,
+                        "caption": "Laden...",
+                        "visible": true
+                    }
+                ]
+            }
         },
         {
             "type": "Button",
