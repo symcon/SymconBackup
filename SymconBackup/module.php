@@ -54,12 +54,7 @@ class SymconBackup extends IPSModule
 
         if ($this->ReadPropertyString('Host') != '') {
             //Validate connection
-            $connection = $this->createConnection(
-                $this->ReadPropertyString('Host'),
-                $this->ReadPropertyInteger('Port'),
-                $this->ReadPropertyString('Username'),
-                $this->ReadPropertyString('Password')
-            );
+            $connection = $this->createConnection();
             if ($connection === false) {
                 return;
             }
@@ -77,12 +72,7 @@ class SymconBackup extends IPSModule
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
             //Create Connection
-            $connection = $this->createConnection(
-                $this->ReadPropertyString('Host'),
-                $this->ReadPropertyString('Port'),
-                $this->ReadPropertyString('Username'),
-                $this->ReadPropertyString('Password')
-            );
+            $connection = $this->createConnection();
             if ($connection === false) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
@@ -513,60 +503,19 @@ class SymconBackup extends IPSModule
         return false;
     }
 
-    private function createConnection($host, $port, $username, $password)
+    private function createConnection()
     {
-        $this->UpdateFormField('Progress', 'visible', true);
-        $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
-        //Create Connection
-        try {
-            switch ($this->ReadPropertyString('ConnectionType')) {
-                case 'SFTP':
-                    $connection = new SFTP($host, $port);
-                    break;
-                case 'FTP':
-                    $connection = new FTP($host, $port);
-                    break;
-                case 'FTPS':
-                    $connection = new FTPS($host, $port);
-                    break;
-                default:
-                    echo $this->Translate('The Connection Type is undefine');
-                    $this->SetStatus(201);
-                    break;
-            }
-        } catch (\Throwable $th) {
-            //Throw than the initial of FTP or FTPS connection failed
-            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
-            $this->UpdateFormField('Progress', 'visible', false);
-            echo $this->Translate($th->getMessage());
-            $this->SetStatus(203);
-            return false;
-        }
-        if ($connection->login($username, $password) === false) {
-            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
-            $this->UpdateFormField('Progress', 'visible', false);
-            $this->SetStatus(201);
-            return false;
-        }
-        return $connection;
+        return $this->createConnectionEx(
+            $this->ReadPropertyString('Host'),
+            $this->ReadPropertyInteger('Port'),
+            $this->ReadPropertyString('Username'),
+            $this->ReadPropertyString('Password'),
+            false,
+        );
     }
 
-    private function createConnectionEx(string $host = '', int $port = -1, string $username = '', string $password = '', bool $test = false)
+    private function createConnectionEx(string $host, int $port, string $username, string $password, bool $test)
     {
-        //Initial values if empty
-        if ($host == '') {
-            $host = $this->ReadPropertyString('Host');
-        }
-        if ($port == -1) {
-            $port = $this->ReadPropertyInteger('Port');
-        }
-        if ($username == '') {
-            $username = $this->ReadPropertyString('Username');
-        }
-        if ($password == '') {
-            $password = $this->ReadPropertyString('Password');
-        }
-
         $this->UpdateFormField('Progress', 'visible', true);
         $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
         //Create Connection
