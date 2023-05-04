@@ -78,14 +78,14 @@
                 {
                     "type": "PopupButton",
                     "caption": "Select directory",
-                    "onClick": "SB_UILoadDir($id, '', $Host, $Port, $Username, $Password);",
+                    "onClick": "SB_UISelectDir($id, $Host, $Port, $Username, $Password);",
                     "popup": {
                         "buttons": [
                             {
                                 "type": "Button",
-                                "caption": "Select directory",
+                                "caption": "Assume",
                                 "onClick": [
-                                    "SB_UISelectDir(",
+                                    "SB_UIAssumeDir(",
                                     "$id, ",
                                     "isset($SelectTargetDirectory['SelectedDirectory']) ? $CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'] : $CurrentDir,",
                                     "$Host,",

@@ -157,12 +157,16 @@ class SymconBackup extends IPSModule
         }
     }
 
-    public function UISelectDir(string $value, string $host, int $port, string $username, string $password)
+    public function UISelectDir(string $host, int $port, string $username, string $password)
+    {
+        $this->UIGoDeeper('/', $host, $port, $username, $password);
+    }
+
+    public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password)
     {
         $connection = $this->createConnection($host, $port, $username, $password);
         $connection->chdir($value);
         $this->UpdateFormField('TargetDir', 'value', $connection->pwd());
-        $this->UpdateFormField('CurrentDir', 'value', '');
         $connection->disconnect();
     }
 
@@ -174,7 +178,7 @@ class SymconBackup extends IPSModule
         if ($dir != '' && $dir != '/') {
             array_push($dirs, [
                 'SelectedDirectory' => '..',
-                'DeeperDir'         => html_entity_decode('	&#11173;'),
+                'DeeperDir'         => '⮥',
             ]);
         }
         $list = $connection->rawlist($dir);
@@ -184,7 +188,7 @@ class SymconBackup extends IPSModule
             ) {
                 array_push($dirs, [
                     'SelectedDirectory' => $entry['filename'],
-                    'DeeperDir'         => html_entity_decode('&#11169;')
+                    'DeeperDir'         => '⮡'
                 ]);
             }
         }
