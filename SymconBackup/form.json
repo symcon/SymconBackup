@@ -134,7 +134,7 @@
         },
         {
             "type": "CheckBox",
-            "caption": "Enable Timer",
+            "caption": "Enable automatic backups",
             "name": "EnableTimer",
             "onChange": "SB_UIEnableTimer($id, $EnableTimer);"
         },
