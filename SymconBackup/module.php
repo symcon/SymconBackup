@@ -99,8 +99,7 @@ class SymconBackup extends IPSModule
             $this->UpdateFormField('ProgressAlert', 'visible', true);
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Create Backup now'));
 
-            $dir = str_replace('\\', '/', IPS_GetKernelDir());
-            $dir = rtrim($dir, '/');
+            $dir = $this->getDataDir();
             $this->UpdateFormField('Progress', 'caption', $dir);
 
             $mode = $this->ReadPropertyString('Mode');
@@ -280,7 +279,7 @@ class SymconBackup extends IPSModule
                     $connection->chdir('..');
                 } else {
                     //It is a file we need to check
-                    if (!file_exists(IPS_GetKernelDir() . '/' . $localDir . '/' . $file['filename'])) {
+                    if (!file_exists($this->getDataDir() . '/' . $localDir . '/' . $file['filename'])) {
                         $files++;
                     }
                 }
@@ -297,7 +296,7 @@ class SymconBackup extends IPSModule
         $numberOf = 0;
 
         foreach ($files as $file) {
-            if ($this->fileFilter($file)) {
+            if ($this->pathFilter($dir . '/' . $file)) {
                 continue;
             }
             if (is_dir($dir . '/' . $file)) {
@@ -334,7 +333,7 @@ class SymconBackup extends IPSModule
         $files = array_diff($files, ['..', '.']);
 
         foreach ($files as $file) {
-            if ($this->fileFilter($file)) {
+            if ($this->pathFilter($dir . '/' . $file)) {
                 continue;
             }
             if (is_dir($dir . '/' . $file)) {
@@ -427,7 +426,7 @@ class SymconBackup extends IPSModule
                 } else {
                     //It is a file we need to check
                     $this->updateFormFieldByTime($dir . '/' . $file['filename']);
-                    if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
+                    if (!file_exists($this->getDataDir() . '/' . $slug . '/' . $file['filename'])) {
                         //Delete file that is not on the local system
                         try {
                             $connection->delete($dir . '/' . $file['filename']);
@@ -473,7 +472,13 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function fileFilter(string $file)
+    private function getDataDir()
+    {
+        $dir = str_replace('\\', '/', IPS_GetKernelDir());
+        return rtrim($dir, '/');
+    }
+
+    private function pathFilter(string $path)
     {
 
         //Any non UTF-8 filename will break everything. Therefore we need to filter them
@@ -487,23 +492,36 @@ class SymconBackup extends IPSModule
               | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
               | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
               | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
-              )*$%xs', $file)) {
+              )*$%xs', $path)) {
             return true;
         }
 
         //Always compare lower case
-        $file = mb_strtolower($file);
+        $path = mb_strtolower($path);
+
+        // Calculate offset
+        $offset = strlen($this->getDataDir()) + 1 /* trailing slash */;
+
+        //Some faulty scripts can produce invalid filenames that start with a backslash.
+        if ($path[$offset] == '\\') {
+            return true;
+        }
+
+        //We do not require to backup sessions
+        if (substr($path, $offset, 7) == 'session') {
+            return true;
+        }
 
         //Check against file filter
         $filters = json_decode($this->ReadPropertyString('FilterDirectory'), true);
         $filters = array_column($filters, 'Directory');
-        if (count($filters) != 0) {
-            foreach ($filters as $filter) {
-                if ($file == $filter) {
-                    return true;
-                }
+        foreach ($filters as $filter) {
+            if (substr($path, $offset, strlen($filter)) == $filter) {
+                return true;
             }
         }
+
+        //File is passing
         return false;
     }
 
