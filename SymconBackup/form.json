@@ -141,7 +141,7 @@
         {
             "type": "SelectTime",
             "name": "DailyUpdateTime",
-            "caption": "Daily Update Time",
+            "caption": "Daily at",
             "visible": false
         },
         {
