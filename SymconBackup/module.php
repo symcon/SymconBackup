@@ -532,8 +532,7 @@ class SymconBackup extends IPSModule
                 default:
                     if (!$showError) {
                         $this->SetStatus(201);
-                    }
-                    else {
+                    } else {
                         echo $this->Translate('The Connection Type is undefined');
                     }
                     break;
@@ -554,8 +553,7 @@ class SymconBackup extends IPSModule
             $this->UpdateFormField('Progress', 'visible', false);
             if (!$showError) {
                 $this->SetStatus(201);
-            }
-            else {
+            } else {
                 echo $this->Translate('Username/Password is invalid');
             }
             return false;
