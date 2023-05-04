@@ -449,8 +449,10 @@ class SymconBackup extends IPSModule
     {
         $lastBuffer = $this->GetBuffer('LastUpdateFormField');
         if (microtime(true) - $lastBuffer > 0.500) {
-            // truncate to last 50 characters for better readability
-            $dir = substr($dir, strlen($dir) - 50);
+            // truncate to last 45 characters for better readability
+            if (strlen($dir) > 42) {
+                $dir = "..." . substr($dir, -42);
+            }
             $this->UpdateFormField('Progress', 'caption', $dir);
             $this->SetBuffer('LastUpdateFormField', microtime(true));
         }
