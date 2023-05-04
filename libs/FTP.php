@@ -61,8 +61,6 @@ class FTP
                 'size'     => $info[4],
                 'mode'     => $mode,
                 'type'     => $type == '0100' ? 2 : 1,
-                //TODO Time ist not good
-                'mtime'    => strtotime(' ' . $info[5] . ' ' . $info[6] . ' ' . $info[7]),
                 'filename' => $info[8],
             ]);
         }
