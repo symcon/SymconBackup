@@ -223,7 +223,7 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function copyLocalToRemote(string $dir, $connection, string $mode, &$transferred)
+    private function copyLocalToRemote(string $dir, $connection, string $mode, & $transferred)
     {
 
         //get the local files
