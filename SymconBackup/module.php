@@ -236,7 +236,7 @@ class SymconBackup extends IPSModule
 
     public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection();
+        $connection = $this->createConnection($host, $port, $username, $password);
         if ($connection === false) {
             return false;
         }
