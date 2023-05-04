@@ -52,15 +52,17 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::ApplyChanges();
 
-        //Validate connection
-        $connection = $this->createConnection();
-        if ($connection === false) {
-            return;
-        }
+        if ($this->ReadPropertyString('Host') != '') {
+            //Validate connection
+            $connection = $this->createConnection();
+            if ($connection === false) {
+                return;
+            }
 
-        if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
-            $this->SetStatus(202);
-            return;
+            if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
+                $this->SetStatus(202);
+                return;
+            }
         }
 
         $this->setNewTimer();
@@ -184,7 +186,7 @@ class SymconBackup extends IPSModule
 
     public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -195,7 +197,7 @@ class SymconBackup extends IPSModule
 
     public function UILoadDir(string $dir, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection($host, $port, $username, $password);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -224,7 +226,7 @@ class SymconBackup extends IPSModule
 
     public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
     {
-        $connection = $this->createConnection();
+        $connection = $this->createConnectionEx($host, $port, $username, $password, false);
         if ($connection === false) {
             return false;
         }
@@ -246,7 +248,13 @@ class SymconBackup extends IPSModule
     public function UITestConnection()
     {
         $this->UpdateFormField('ProgressAlert', 'visible', true);
-        $connection = $this->createConnection();
+        $connection = $this->createConnectionEx(
+            $this->ReadPropertyString('Host'),
+            $this->ReadPropertyInteger('Port'),
+            $this->ReadPropertyString('Username'),
+            $this->ReadPropertyString('Password'),
+            true,
+        );
         if ($connection !== false) {
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Connection is valid'));
             $this->UpdateFormField('Progress', 'visible', false);
@@ -495,22 +503,19 @@ class SymconBackup extends IPSModule
         return false;
     }
 
-    private function createConnection(string $host = '', int $port = -1, string $username = '', string $password = '')
+    private function createConnection()
     {
-        //Initial values if empty
-        if ($host == '') {
-            $host = $this->ReadPropertyString('Host');
-        }
-        if ($port == -1) {
-            $port = $this->ReadPropertyInteger('Port');
-        }
-        if ($username == '') {
-            $username = $this->ReadPropertyString('Username');
-        }
-        if ($password == '') {
-            $password = $this->ReadPropertyString('Password');
-        }
+        return $this->createConnectionEx(
+            $this->ReadPropertyString('Host'),
+            $this->ReadPropertyInteger('Port'),
+            $this->ReadPropertyString('Username'),
+            $this->ReadPropertyString('Password'),
+            false,
+        );
+    }
 
+    private function createConnectionEx(string $host, int $port, string $username, string $password, bool $showError)
+    {
         $this->UpdateFormField('Progress', 'visible', true);
         $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
         //Create Connection
@@ -534,14 +539,19 @@ class SymconBackup extends IPSModule
             //Throw than the initial of FTP or FTPS connection failed
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            echo $this->Translate($th->getMessage());
-            $this->SetStatus(203);
+            if ($showError) {
+                echo $this->Translate($th->getMessage());
+            } else {
+                $this->SetStatus(203);
+            }
             return false;
         }
         if ($connection->login($username, $password) === false) {
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            $this->SetStatus(201);
+            if (!$showError) {
+                $this->SetStatus(201);
+            }
             return false;
         }
         return $connection;
