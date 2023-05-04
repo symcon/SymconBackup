@@ -1,16 +1,16 @@
 {
     "translations": {
         "de": {
-            "Connection Type": "Verbindungstype",
+            "Connection Type": "Verbindungstyp",
             "Username": "Benutzername",
             "Password": "Passwort",
             "Mode": "Modus",
             "Full Backup": "Vollständiges Backup",
             "Incremental Backup": "Inkrementelles Backup",
             "Target Directory": "Zielordner",
-            "Select directory": "Suche Zielordner",
+            "Select Directory": "Suche Zielordner",
             "Assume": "Übernehmen",
-            "Current Directory": "Momentaner Zielordner",
+            "Current Directory": "Aktueller Zielordner",
             "Select Target Directory": "Gehe in",
             "Go into": "Gehe in",
             "Select the target directory": "Wähle den Zielordner",

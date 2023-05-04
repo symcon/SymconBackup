@@ -77,7 +77,7 @@
                 },
                 {
                     "type": "PopupButton",
-                    "caption": "Select directory",
+                    "caption": "Select Directory",
                     "onClick": "SB_UISelectDir($id, $Host, $Port, $Username, $Password);",
                     "popup": {
                         "buttons": [
