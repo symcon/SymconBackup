@@ -4,10 +4,41 @@
             "type": "RowLayout",
             "items": [
                 {
+                    "type": "Select",
+                    "caption": "Connection Type",
+                    "name": "ConnectionType",
+                    "options": [
+                        {
+                            "caption": "SFTP",
+                            "value": "SFTP"
+                        },
+                        {
+                            "caption": "FTP",
+                            "value": "FTP"
+                        },
+                        {
+                            "caption": "FTPS",
+                            "value": "FTPS"
+                        }
+                    ],
+                    "onChange": "SB_UIChangePort($id, $ConnectionType);"
+                },
+                {
                     "type": "ValidationTextBox",
                     "name": "Host",
                     "caption": "Host"
                 },
+                {
+                    "type": "NumberSpinner",
+                    "name": "Port",
+                    "caption": "Port",
+                    "minimum": 0
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
                 {
                     "type": "ValidationTextBox",
                     "name": "Username",
@@ -62,6 +93,13 @@
             "caption": "Expert options",
             "items": [
                 {
+                    "type": "NumberSpinner",
+                    "minimum": 1,
+                    "name": "SizeLimit",
+                    "caption": "Size Limit",
+                    "suffix": "MB"
+                },
+                {
                     "type": "List",
                     "name": "FilterDirectory",
                     "caption": "Filter Directory",
@@ -94,6 +132,11 @@
             "type": "Button",
             "caption": "Create Backup",
             "onClick": "SB_CreateBackup($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "Test Connection",
+            "onClick": "SB_UITestConnection($id);"
         }
     ],
     "status": [
@@ -106,6 +149,11 @@
             "code": 202,
             "icon": "error",
             "caption": "Target Directory is invalid"
+        },
+        {
+            "code": 203,
+            "icon": "error",
+            "caption": "Host/Port is invalid"
         }
     ]
 }

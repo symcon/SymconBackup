@@ -1,5 +1,5 @@
 # SymconBackup
-Erstellt ein Backup über SFTP.
+Erstellt ein Backup über SFTP, FTP oder FTPS.
 
 ### Inhaltsverzeichnis
 
@@ -12,8 +12,8 @@ Erstellt ein Backup über SFTP.
 
 ### 1. Funktionsumfang
 
-* Erstell ein Backup über SFTP auf einem Server
-* Updatet ein Backup über SFTP auf einem Server
+* Erstell ein Backup über SFTP, FTP oder FTPS auf einem Server
+* Updatet ein Backup über SFTP, FTP oder FTPS auf einem Server
 
 ### 2. Voraussetzungen
 
@@ -33,15 +33,18 @@ __Konfigurationsseite__:
 
 Name                      | Beschreibung
 ------------------------- | ------------------
+Verbindungstyp            | Auswahl der Verbindungsart
 Host                      | IP Adresse des Servers
+Port                      | Port auf dem der Client sich auf den Server verbindet. Bei FTPS und FTP ist dies normalerweise 21. Bei SFTP ist dies der Port 22
 Benutzername              | Benutzernamen für die SFTP Verbindung 
 Passwort                  | Passwort für die SFTP Verbindung 
 Modus                     | Modus was für ein Backup erstellt werden soll 
+Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
 Timer aktivieren          | Aktiviert ein tägliches Update
 Tägliche Zeit zum updaten | Zeit, wann das Update täglich startet  
-Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
 Expertenoptionen          | Filter um bestimmte Ordner nicht zu übertragen
 Backup erstellen          | Button, welcher sofort ein Update startet. 
+Verbindung testen         | Testet, ob eine Verbindung hergestellt werden kann
 
 __Modus__: 
 Vollständiges Backup: Erstellt eine vollständige Kopie in einem seperaten Ordner 
@@ -53,8 +56,8 @@ Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzeln
 
 #### Statusvariablen
 
-Name             | Typ            | Beschreibung
----------------- | -------------- | ------------
+Name                           | Typ     | Beschreibung
+------------------------------ | ------- | ------------
 Zuletzt abgeschlossenes Backup | Integer | Zeitpunkt, zudem das letzte Backup abgeschlossen wurde
 Übertragene Megabytes          | Float   | Megabytes, welche beim letzten Update übertragen wurde 
 

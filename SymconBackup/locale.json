@@ -1,24 +1,30 @@
 {
     "translations": {
         "de": {
-            "Target Direction is invalid": "Zielpfad ist nicht korrekt",
-            "Username/Password is invalid": "Benutzername/Passwort ist nicht korrekt",
-            "Target Directory": "Zielordner",
-            "Password": "Passwort",
+            "Connection Type": "Verbindungstype",
             "Username": "Benutzername",
-            "Full Backup": "Vollständiges Backup",
-            "Update Backup": "Backup updaten",
+            "Password": "Passwort",
             "Mode": "Modus",
-            "Create Backup": "Backup erstellen",
+            "Full Backup": "Vollständiges Backup",
+            "Incremental Backup": "Inkrementelles Backup",
+            "Target Directory": "Zielordner",
+            "Enable Timer": "Timer aktivieren",
             "Daily Update Time": "Tägliche Zeit zum Updaten",
+            "Expert options": "Expertenoptionen",
             "Filter Directory": "Gefilterte Ordner",
             "Directory": "Ordner",
-            "Incremental Backup": "Inkrementelles Backup",
-            "An other Backup is already running": "Ein anderes Backup wird bereits erstellt",
-            "Enable Timer": "Timer aktivieren",
-            "Expert options": "Expertenoptionen",
+            "Test Connection": "Verbindung testen",
+            "Create Backup": "Backup erstellen",
             "Last Finished Backup": "Zuletzt abgeschlossenes Backup",
-            "Transferred Megabytes": "Übertragene Megabytes"
+            "Transferred Megabytes": "Übertragene Megabytes",
+            "Wait on connection": "Auf Verbindung warten",
+            "An other Backup is already running": "Ein anderes Backup wird bereits erstellt",
+            "The Connection Type is undefine": "Der Verbindungstyp ist nicht definiert",
+            "Connection is valid": "Die Verbindung ist korrekt",
+            "Target Direction is invalid": "Zielpfad ist nicht korrekt",
+            "Username/Password is invalid": "Benutzername/Passwort ist nicht korrekt",
+            "Connection is invalid": "Verbindung ist nicht korrekt",
+            "Error: The Connection is invalid": "Fehler: Die Verbindung ist nicht korrekt"
         }
     }
 }

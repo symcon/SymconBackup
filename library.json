@@ -2,7 +2,7 @@
     "id": "{FBD18A58-72C5-A1B9-D942-46CBB27C6174}",
     "name": "SymconBackup",
     "author": "Symcon GmbH",
-    "url": "https://www.symcon.de",
+    "url": "https://github.com/symcon/SymconBackup",
     "compatibility": {
         "version": "6.3"
     },

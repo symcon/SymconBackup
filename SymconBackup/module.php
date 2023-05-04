@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 include_once __DIR__ . '/../libs/vendor/autoload.php';
+include_once __DIR__ . '/../libs/FTP.php';
+include_once __DIR__ . '/../libs/FTPS.php';
 use phpseclib3\Net\SFTP;
 
 class SymconBackup extends IPSModule
@@ -12,7 +14,9 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::Create();
 
+        $this->RegisterPropertyString('ConnectionType', 'SFTP');
         $this->RegisterPropertyString('Host', '');
+        $this->RegisterPropertyInteger('Port', 22);
         $this->RegisterPropertyString('Username', '');
         $this->RegisterPropertyString('Password', '');
 
@@ -20,7 +24,10 @@ class SymconBackup extends IPSModule
         $this->RegisterPropertyString('TargetDir', '');
         $this->RegisterPropertyString('DailyUpdateTime', '{"hour":3, "minute": 0, "second": 0}');
         $this->RegisterPropertyBoolean('EnableTimer', false);
+
+        //Expert options
         $this->RegisterPropertyString('FilterDirectory', '');
+        $this->RegisterPropertyInteger('SizeLimit', 20);
 
         if (!IPS_VariableProfileExists('Megabytes.Backup')) {
             //Profil erstellen
@@ -53,9 +60,8 @@ class SymconBackup extends IPSModule
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
             //Create Connection
-            $sftp = new SFTP($this->ReadPropertyString('Host'));
-            if (!$sftp->login($this->ReadPropertyString('Username'), $this->ReadPropertyString('Password'))) {
-                $this->SetStatus(201);
+            $connection = $this->createConnection();
+            if ($connection === false) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             }
@@ -63,8 +69,10 @@ class SymconBackup extends IPSModule
             //Set the base directory on the remote
             $baseDir = $this->ReadPropertyString('TargetDir');
             if ($baseDir != '') {
-                $sftp->chdir($baseDir);
-                if (ltrim($sftp->pwd(), '/') != $baseDir) {
+                $connection->chdir($baseDir);
+                if (ltrim($connection->pwd(), '/') != $baseDir) {
+                    $this->SendDebug('Remote dir', $connection->pwd(), 0);
+                    $this->SendDebug('Custom dir', $baseDir, 0);
                     $this->SetStatus(202);
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
@@ -81,13 +89,13 @@ class SymconBackup extends IPSModule
             $mode = $this->ReadPropertyString('Mode');
             if ($mode == 'FullBackup') {
                 $backupName = date('Y-m-d-H-i-s');
-                $sftp->mkdir($backupName);
-                $sftp->chdir($backupName);
+                $connection->mkdir($backupName);
+                $connection->chdir($backupName);
             }
 
             //Go recursively through the directories and files and copy from local to remote
             $transferred = 0;
-            if (!$this->copyLocalToRemote($dir, $sftp, $mode, $transferred)) {
+            if (!$this->copyLocalToRemote($dir, $connection, $mode, $transferred)) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
@@ -96,7 +104,7 @@ class SymconBackup extends IPSModule
 
             if ($mode == 'IncrementalBackup') {
                 //Compare the local files to the remote ones and delete remote files if it hasn't a local file
-                if (!$this->compareFilesRemoteToLocal($sftp->pwd(), $sftp, '')) {
+                if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, '')) {
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
@@ -119,15 +127,45 @@ class SymconBackup extends IPSModule
         $this->UpdateFormField('DailyUpdateTime', 'visible', $value);
     }
 
+    public function UIChangePort(string $value)
+    {
+        if ($this->ReadPropertyInteger('Port') == 21 || $this->ReadPropertyInteger('Port') == 22) {
+            switch ($value) {
+                case 'SFTP':
+                    $value = 22;
+                    break;
+                case 'FTP':
+                case 'FTPS':
+                    $value = 21;
+                    break;
+                default:
+                    # code...
+                    break;
+            }
+            $this->UpdateFormField('Port', 'value', $value);
+        }
+    }
+
     public function GetConfigurationForm()
     {
         $json = json_decode(file_get_contents(__DIR__ . '/form.json', true), true);
-        $json['elements'][3]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
+        $json['elements'][4]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
 
         return json_encode($json);
     }
 
-    private function copyLocalToRemote(string $dir, SFTP $sftp, string $mode, & $transferred)
+    public function UITestConnection()
+    {
+        $connection = $this->createConnection();
+        if ($connection !== false) {
+            echo $this->Translate('Connection is valid');
+            $connection->disconnect();
+            $this->UpdateFormField('Progress', 'visible', false);
+            $this->SetStatus(102);
+        }
+    }
+
+    private function copyLocalToRemote(string $dir, $connection, string $mode, & $transferred)
     {
 
         //get the local files
@@ -135,44 +173,50 @@ class SymconBackup extends IPSModule
         $files = array_diff($files, ['..', '.']);
 
         foreach ($files as $file) {
-            $this->SendDebug('File', $dir . '/' . $file, 0);
             if ($this->fileFilter($file)) {
                 continue;
             }
             if (is_dir($dir . '/' . $file)) {
                 //Create directory and go to the deeper directory on remote
-                $sftp->mkdir($file);
-                $sftp->chdir($file);
-                if (!$this->copyLocalToRemote($dir . '/' . $file, $sftp, $mode, $transferred)) {
+                $connection->mkdir($file);
+                $connection->chdir($file);
+                if (!$this->copyLocalToRemote($dir . '/' . $file, $connection, $mode, $transferred)) {
                     return false;
                 }
-                $sftp->chdir('..');
+                $connection->chdir('..');
             } else {
                 $this->updateFormFieldByTime($dir . '/' . $file);
+
+                //check if the file size is higher than the php_memory limit
+                $filesize = filesize($dir . '/' . $file);
+                if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
+                    $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
+                }
+
                 switch ($mode) {
                     case 'FullBackup':
                         try {
-                            $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
-                            $transferred += $sftp->filesize($file);
+                            $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                            $transferred += $connection->filesize($file);
                         } catch (\Throwable $th) {
                             $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                             return false;
                         }
                         break;
                     case 'IncrementalBackup':
-                        if (!$sftp->file_exists($sftp->pwd() . '/' . $file)) {
+                        if (!$connection->file_exists($connection->pwd() . '/' . $file)) {
                             try {
-                                $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
-                                $transferred += $sftp->filesize($file);
+                                $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                                $transferred += $connection->filesize($file);
                             } catch (\Throwable $th) {
                                 $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                                 return false;
                             }
                         } else {
-                            if (filemtime($dir . '/' . $file) > $sftp->filemtime($file)) {
+                            if (filemtime($dir . '/' . $file) > $connection->filemtime($file)) {
                                 try {
-                                    $sftp->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
-                                    $transferred += $sftp->filesize($file);
+                                    $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
+                                    $transferred += $connection->filesize($file);
                                 } catch (\Throwable $th) {
                                     $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                                     return false;
@@ -180,21 +224,34 @@ class SymconBackup extends IPSModule
                             }
                         }
                         break;
-                }
+                    }
             }
         }
         return true;
     }
 
-    private function compareFilesRemoteToLocal($dir, $sftp, string $slug)
+    //Source: https://stackoverflow.com/questions/2510434/format-bytes-to-kilobytes-megabytes-gigabytes
+    private function formatBytes($size, $precision = 2)
     {
-        $remoteList = $sftp->rawlist($dir, false);
+        $base = log($size, 1024);
+        $suffixes = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+        if ($size == 0) {
+            return '0 B';
+        } else {
+            return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+        }
+    }
+
+    private function compareFilesRemoteToLocal($dir, $connection, string $slug)
+    {
+        $remoteList = $connection->rawlist($dir, false);
         foreach ($remoteList as $key => $file) {
             if ($key != '.' && $key != '..') {
-                if ($sftp->is_dir($dir . '/' . $file['filename'])) {
+                if ($connection->is_dir($dir . '/' . $file['filename'])) {
                     //Go to the deeper directory on the remote
-                    $sftp->chdir($file['filename']);
-                    if (!$this->compareFilesRemoteToLocal($sftp->pwd(), $sftp, $slug . '/' . $file['filename'])) {
+                    $connection->chdir($file['filename']);
+                    if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, $slug . '/' . $file['filename'])) {
                         return false;
                     }
                 } else {
@@ -203,7 +260,7 @@ class SymconBackup extends IPSModule
                     if (!file_exists(IPS_GetKernelDir() . '/' . $slug . '/' . $file['filename'])) {
                         //Delete file that is not on the local system
                         try {
-                            $sftp->delete($dir . '/' . $file['filename']);
+                            $connection->delete($dir . '/' . $file['filename']);
                         } catch (\Throwable $th) {
                             $this->UpdateFormField('Progress', 'caption', $th->getMessage());
                             return false;
@@ -212,7 +269,7 @@ class SymconBackup extends IPSModule
                 }
             }
         }
-        $sftp->chdir('..');
+        $connection->chdir('..');
         return true;
     }
 
@@ -271,5 +328,45 @@ class SymconBackup extends IPSModule
             }
         }
         return false;
+    }
+
+    private function createConnection()
+    {
+        //Create Connection
+        $username = $this->ReadPropertyString('Username');
+        $password = $this->ReadPropertyString('Password');
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+        $this->UpdateFormField('Progress', 'visible', true);
+        $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
+        try {
+            switch ($this->ReadPropertyString('ConnectionType')) {
+                case 'SFTP':
+                    $connection = new SFTP($host, $port);
+                    break;
+                case 'FTP':
+                    $connection = new FTP($host, $port);
+                    break;
+                case 'FTPS':
+                    $connection = new FTPS($host, $port);
+                    break;
+                default:
+                    echo $this->Translate('The Connection Type is undefine');
+                    $this->SetStatus(201);
+                    break;
+            }
+        } catch (\Throwable $th) {
+            //Throw than the initial of FTP or FTPS connection failed
+            $this->UpdateFormField('Progress', 'caption', $this->Translate($th->getMessage()));
+            echo $this->Translate($th->getMessage());
+            $this->SetStatus(203);
+            return false;
+        }
+        if ($connection->login($username, $password) === false) {
+            echo $this->Translate('Connection is invalid.') . "\n" . $this->Translate('Username/Password is invalid');
+            $this->SetStatus(201);
+            return false;
+        }
+        return $connection;
     }
 }
