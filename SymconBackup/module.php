@@ -198,7 +198,7 @@ class SymconBackup extends IPSModule
         if ($dir != '' && $dir != '/') {
             array_push($dirs, [
                 'SelectedDirectory' => '..',
-                'DeeperDir'         => '⮥',
+                'DeeperDir'         => '⬑',
             ]);
         }
         $list = $connection->rawlist($dir);
@@ -208,7 +208,7 @@ class SymconBackup extends IPSModule
             ) {
                 array_push($dirs, [
                     'SelectedDirectory' => $entry['filename'],
-                    'DeeperDir'         => '⮡'
+                    'DeeperDir'         => '↳'
                 ]);
             }
         }
