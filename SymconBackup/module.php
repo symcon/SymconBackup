@@ -259,7 +259,6 @@ class SymconBackup extends IPSModule
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Connection is valid'));
             $this->UpdateFormField('Progress', 'visible', false);
             $connection->disconnect();
-            $this->SetStatus(102);
         }
     }
 
@@ -531,26 +530,33 @@ class SymconBackup extends IPSModule
                     $connection = new FTPS($host, $port);
                     break;
                 default:
-                    echo $this->Translate('The Connection Type is undefine');
-                    $this->SetStatus(201);
+                    if (!$showError) {
+                        $this->SetStatus(201);
+                    }
+                    else {
+                        echo $this->Translate('The Connection Type is undefined');
+                    }
                     break;
             }
         } catch (\Throwable $th) {
             //Throw than the initial of FTP or FTPS connection failed
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            if ($showError) {
-                echo $this->Translate($th->getMessage());
-            } else {
+            if (!$showError) {
                 $this->SetStatus(203);
+            } else {
+                echo $this->Translate($th->getMessage());
             }
             return false;
         }
         if ($connection->login($username, $password) === false) {
-            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Username/Password is invalid'));
             $this->UpdateFormField('Progress', 'visible', false);
             if (!$showError) {
                 $this->SetStatus(201);
+            }
+            else {
+                echo $this->Translate('Username/Password is invalid');
             }
             return false;
         }

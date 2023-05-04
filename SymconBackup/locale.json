@@ -28,7 +28,7 @@
             "Backup is finished": "Backup ist abgeschlossen",
             "Wait on connection": "Auf Verbindung warten",
             "An other Backup is already running": "Ein anderes Backup wird bereits erstellt",
-            "The Connection Type is undefine": "Der Verbindungstyp ist nicht definiert",
+            "The Connection Type is undefined": "Der Verbindungstyp ist nicht definiert",
             "Connection is valid": "Die Verbindung ist korrekt",
             "Target Directory is invalid": "Zielpfad ist nicht korrekt",
             "Username/Password is invalid": "Benutzername/Passwort ist nicht korrekt",
