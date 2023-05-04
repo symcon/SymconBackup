@@ -52,15 +52,22 @@ class SymconBackup extends IPSModule
         //Never delete this line!
         parent::ApplyChanges();
 
-        //Validate connection
-        $connection = $this->createConnection();
-        if ($connection === false) {
-            return;
-        }
+        if ($this->ReadPropertyString('Host') != '') {
+            //Validate connection
+            $connection = $this->createConnection(
+                $this->ReadPropertyString('Host'),
+                $this->ReadPropertyInteger('Port'),
+                $this->ReadPropertyString('Username'),
+                $this->ReadPropertyString('Password')
+            );
+            if ($connection === false) {
+                return;
+            }
 
-        if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
-            $this->SetStatus(202);
-            return;
+            if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
+                $this->SetStatus(202);
+                return;
+            }
         }
 
         $this->setNewTimer();
@@ -70,7 +77,12 @@ class SymconBackup extends IPSModule
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
             //Create Connection
-            $connection = $this->createConnection();
+            $connection = $this->createConnection(
+                $this->ReadPropertyString('Host'),
+                $this->ReadPropertyString('Port'),
+                $this->ReadPropertyString('Username'),
+                $this->ReadPropertyString('Password')
+            );
             if ($connection === false) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
@@ -246,7 +258,13 @@ class SymconBackup extends IPSModule
     public function UITestConnection()
     {
         $this->UpdateFormField('ProgressAlert', 'visible', true);
-        $connection = $this->createConnection();
+        $connection = $this->createConnectionEx(
+            $this->ReadPropertyString('Host'),
+            $this->ReadPropertyInteger('Port'),
+            $this->ReadPropertyString('Username'),
+            $this->ReadPropertyString('Password'), 
+            true,
+        );
         if ($connection !== false) {
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Connection is valid'));
             $this->UpdateFormField('Progress', 'visible', false);
@@ -401,7 +419,7 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function compareFilesRemoteToLocal($dir, $connection, string $slug, & $passedFiles)
+    private function compareFilesRemoteToLocal($dir, $connection, string $slug, &$passedFiles)
     {
         $remoteList = $connection->rawlist($dir, false);
         foreach ($remoteList as $key => $file) {
@@ -495,7 +513,45 @@ class SymconBackup extends IPSModule
         return false;
     }
 
-    private function createConnection(string $host = '', int $port = -1, string $username = '', string $password = '')
+    private function createConnection($host, $port, $username, $password)
+    {
+        $this->UpdateFormField('Progress', 'visible', true);
+        $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
+        //Create Connection
+        try {
+            switch ($this->ReadPropertyString('ConnectionType')) {
+                case 'SFTP':
+                    $connection = new SFTP($host, $port);
+                    break;
+                case 'FTP':
+                    $connection = new FTP($host, $port);
+                    break;
+                case 'FTPS':
+                    $connection = new FTPS($host, $port);
+                    break;
+                default:
+                    echo $this->Translate('The Connection Type is undefine');
+                    $this->SetStatus(201);
+                    break;
+            }
+        } catch (\Throwable $th) {
+            //Throw than the initial of FTP or FTPS connection failed
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('Progress', 'visible', false);
+            echo $this->Translate($th->getMessage());
+            $this->SetStatus(203);
+            return false;
+        }
+        if ($connection->login($username, $password) === false) {
+            $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
+            $this->UpdateFormField('Progress', 'visible', false);
+            $this->SetStatus(201);
+            return false;
+        }
+        return $connection;
+    }
+
+    private function createConnectionEx(string $host = '', int $port = -1, string $username = '', string $password = '', bool $test = false)
     {
         //Initial values if empty
         if ($host == '') {
@@ -534,14 +590,19 @@ class SymconBackup extends IPSModule
             //Throw than the initial of FTP or FTPS connection failed
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            echo $this->Translate($th->getMessage());
-            $this->SetStatus(203);
+            if ($test) {
+                echo $this->Translate($th->getMessage());
+            } else {
+                $this->SetStatus(203);
+            }
             return false;
         }
         if ($connection->login($username, $password) === false) {
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate($th->getMessage()));
             $this->UpdateFormField('Progress', 'visible', false);
-            $this->SetStatus(201);
+            if (!$test) {
+                $this->SetStatus(201);
+            }
             return false;
         }
         return $connection;
