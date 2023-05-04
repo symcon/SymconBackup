@@ -262,7 +262,7 @@ class SymconBackup extends IPSModule
             $this->ReadPropertyString('Host'),
             $this->ReadPropertyInteger('Port'),
             $this->ReadPropertyString('Username'),
-            $this->ReadPropertyString('Password'), 
+            $this->ReadPropertyString('Password'),
             true,
         );
         if ($connection !== false) {
