@@ -140,7 +140,7 @@ class FTP
     public function file_exists($path)
     {
         $result = ftp_size($this->connection, $path);
-        if ($result != -1) {
+        if ($result == -1) {
             return false;
         } else {
             return true;
