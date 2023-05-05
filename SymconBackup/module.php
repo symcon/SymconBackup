@@ -186,6 +186,7 @@ class SymconBackup extends IPSModule
                 }
             }
 
+            $connection->disconnect();
             $this->UpdateFormField('Progress', 'indeterminate', true);
             $this->UpdateFormField('Progress', 'visible', false);
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
@@ -427,7 +428,6 @@ class SymconBackup extends IPSModule
                             if (filemtime($dir . '/' . $file) > $connection->filemtime($file)) {
                                 try {
                                     $connection->put($file, $dir . '/' . $file, SFTP::SOURCE_LOCAL_FILE);
-                                    $this->SendDebug('File replace', $file, 0);
                                     $transferred += $connection->filesize($file);
                                     $passedFiles++;
                                     $this->UpdateFormField('Progress', 'current', $passedFiles);
