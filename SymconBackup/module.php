@@ -458,7 +458,7 @@ class SymconBackup extends IPSModule
         }
     }
 
-    private function compareFilesRemoteToLocal($dir, $connection, string $slug, &$passedFiles)
+    private function compareFilesRemoteToLocal($dir, $connection, string $slug, & $passedFiles)
     {
         $remoteList = $connection->rawlist($dir, false);
         foreach ($remoteList as $key => $file) {
