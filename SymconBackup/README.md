@@ -12,7 +12,7 @@ Erstellt ein Backup über SFTP, FTP oder FTPS.
 
 ### 1. Funktionsumfang
 
-* Erstell ein Backup über SFTP, FTP oder FTPS auf einem Server
+* Erstellt ein Backup über SFTP, FTP oder FTPS auf einem Server
 * Updatet ein Backup über SFTP, FTP oder FTPS auf einem Server
 
 ### 2. Voraussetzungen
@@ -39,10 +39,11 @@ Port                      | Port auf dem der Client sich auf den Server verbinde
 Benutzername              | Benutzernamen für die SFTP Verbindung 
 Passwort                  | Passwort für die SFTP Verbindung 
 Modus                     | Modus was für ein Backup erstellt werden soll 
+Periodischer Wechsel      | Zum Anfang der Periode wird ein neuer Ordner erstellt
 Zielordner                | Ordner auf dem Server, in dem das Backup erstellt werden soll
 Suche Zielordner          | Durch die Ordner browsen und ein valider Pfad kann erstellt werden
-Timer aktivieren          | Aktiviert ein tägliches Update
-Tägliche Zeit zum updaten | Zeit, wann das Update täglich startet  
+Automatische Backups aktivieren | Aktiviert ein tägliches Update
+Täglich um                      | Zeit, wann das Update täglich startet  
 Expertenoptionen          | -
 Größen Limit              | Ist eine Datei Größer als dieses Limit wird sie ignoriert
 Gefilterte Ordner         | Filter um bestimmte Ordner nicht zu übertragen
@@ -50,8 +51,8 @@ Backup erstellen          | Button, welcher sofort ein Update startet.
 Verbindung testen         | Testet, ob eine Verbindung hergestellt werden kann
 
 __Modus__: 
-Vollständiges Backup: Erstellt eine vollständige Kopie in einem seperaten Ordner 
-Inkrementelles Backup: Updatet ein bestehendes Backup. 
+Vollständiges Backup: Erstellt eine vollständige Kopie in einem separaten Ordner 
+Inkrementelles Backup: Updatet ein bestehendes Backup.
 
 ### 5. Statusvariablen und Profile
 

@@ -58,6 +58,7 @@
                     "type": "Select",
                     "name": "Mode",
                     "caption": "Mode",
+                    "onChange": "SB_UIEnableChange($id, $Mode);",
                     "options": [
                         {
                             "caption": "Full Backup",
@@ -69,6 +70,31 @@
                         }
                     ]
                 },
+                {
+                    "type": "Select",
+                    "name": "ChangePeriode",
+                    "caption": "Change dir periodical",
+                    "options": [
+                        {
+                            "caption": "Never",
+                            "value": "Never"
+                        },
+                        {
+                            "caption": "Monthly",
+                            "value": "Monthly"
+                        },
+                        {
+                            "caption": "Yearly",
+                            "value": "Yearly"
+                        }
+                    ],
+                    "visible": false
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
                 {
                     "type": "ValidationTextBox",
                     "name": "TargetDir",
