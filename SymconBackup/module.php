@@ -520,7 +520,7 @@ class SymconBackup extends IPSModule
         $filters = json_decode($this->ReadPropertyString('FilterDirectory'), true);
         $filters = array_column($filters, 'Directory');
         foreach ($filters as $filter) {
-            if (substr($path, $offset, strlen($filter)) == $filter) {
+            if (substr($path, $offset, strlen($filter)) == mb_strtolower($filter)) {
                 return true;
             }
         }
