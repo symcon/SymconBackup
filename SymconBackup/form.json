@@ -78,7 +78,7 @@
                 {
                     "type": "PopupButton",
                     "caption": "Select Directory",
-                    "onClick": "SB_UISelectDir($id, $Host, $Port, $Username, $Password);",
+                    "onClick": "SB_UISelectDir($id, $Host, $Port, $Username, $Password, $ConnectionType);",
                     "popup": {
                         "buttons": [
                             {
@@ -91,7 +91,8 @@
                                     "$Host,",
                                     "$Port, ",
                                     "$Username,",
-                                    " $Password",
+                                    "$Password,",
+                                    "$ConnectionType",
                                     ");"
                                 ]
                             }
@@ -117,7 +118,7 @@
                                         "confirm": "Go into this Directory?"
                                     },
                                     {
-                                        "onClick": "SB_UIGoDeeper($id,$CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'],$Host, $Port, $Username, $Password);",
+                                        "onClick": "SB_UIGoDeeper($id,$CurrentDir.'/'.$SelectTargetDirectory['SelectedDirectory'],$Host, $Port, $Username, $Password, $ConnectionType);",
                                         "caption": "Go into",
                                         "name": "DeeperDir",
                                         "width": "75px",
