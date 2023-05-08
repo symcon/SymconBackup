@@ -61,6 +61,7 @@ class SymconBackup extends IPSModule
 
             if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
                 $this->SetStatus(202);
+                $this->disconnect();
                 return;
             }
 
@@ -86,6 +87,7 @@ class SymconBackup extends IPSModule
                 $connection->chdir($baseDir);
                 if ($connection->pwd() != $baseDir) {
                     $this->SetStatus(202);
+                    $connection->disconnect();
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
@@ -131,6 +133,7 @@ class SymconBackup extends IPSModule
             $passedFiles = 0;
             if (!$this->copyLocalToRemote($dir, $connection, $mode, $transferred,
             $passedFiles)) {
+                $connection->disconnect();
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             } else {
@@ -140,11 +143,13 @@ class SymconBackup extends IPSModule
             if ($mode == 'IncrementalBackup') {
                 //Compare the local files to the remote ones and delete remote files if it hasn't a local file
                 if (!$this->compareFilesRemoteToLocal($connection->pwd(), $connection, '', $passedFiles)) {
+                    $connection->disconnect();
                     IPS_SemaphoreLeave('CreateBackup');
                     return false;
                 }
             }
 
+            $connection->disconnect();
             $this->UpdateFormField('Progress', 'indeterminate', true);
             $this->UpdateFormField('Progress', 'visible', false);
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
