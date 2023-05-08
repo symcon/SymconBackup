@@ -80,6 +80,10 @@
                             "value": "Never"
                         },
                         {
+                            "caption": "Weekly",
+                            "value": "Weekly"
+                        },
+                        {
                             "caption": "Monthly",
                             "value": "Monthly"
                         },

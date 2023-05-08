@@ -131,6 +131,12 @@ class SymconBackup extends IPSModule
                 $checkDir('symcon');
                 //if monthly or yearly check if an dir for this period is exist or create it
                 switch ($this->ReadPropertyString('ChangePeriode')) {
+                    case 'Weekly':
+                        //check if the current week had a dir if not create one
+                        //Pattern 'Y-m-d' check if it is a Monday
+                        $currentPattern = date('Y-m-d') == date('Y-m-d', strtotime('Monday')) ? date('Y-m-d') : date('Y-m-d', strtotime('Monday'));
+                        $checkDir($currentPattern);
+                        break;
                     case 'Monthly':
                         //check if the current month had a dir if not create one
                         // Pattern 'Y'-'m'
