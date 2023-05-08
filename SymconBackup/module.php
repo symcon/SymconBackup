@@ -21,6 +21,7 @@ class SymconBackup extends IPSModule
         $this->RegisterPropertyString('Password', '');
 
         $this->RegisterPropertyString('Mode', 'FullBackup');
+        $this->RegisterPropertyString('ChangePeriode', 'Never');
         $this->RegisterPropertyString('TargetDir', '');
         $this->RegisterPropertyString('DailyUpdateTime', '{"hour":3, "minute": 0, "second": 0}');
         $this->RegisterPropertyBoolean('EnableTimer', false);
@@ -71,6 +72,15 @@ class SymconBackup extends IPSModule
         $this->setNewTimer();
     }
 
+    public function GetConfigurationForm()
+    {
+        $this->SetBuffer('TargetDirection', '');
+        $json = json_decode(file_get_contents(__DIR__ . '/form.json', true), true);
+        $json['elements'][5]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
+        $json['elements'][2]['items'][1]['visible'] = $this->ReadPropertyString('Mode') == 'IncrementalBackup';
+        return json_encode($json);
+    }
+
     public function CreateBackup()
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
@@ -104,11 +114,48 @@ class SymconBackup extends IPSModule
             $dir = $this->getDataDir();
             $this->UpdateFormField('Progress', 'caption', $dir);
 
+            //Set the remote dir
             $mode = $this->ReadPropertyString('Mode');
             if ($mode == 'FullBackup') {
                 $backupName = date('Y-m-d-H-i-s');
                 $connection->mkdir($backupName);
                 $connection->chdir($backupName);
+            } else {
+                //To avoid check on empty or existing backup create a new dir
+                $checkDir = function ($dir) use ($connection)
+                {
+                    if (!$connection->is_dir($connection->pwd() . '/' . $dir)) {
+                        $connection->mkdir($dir);
+                    }
+                    $connection->chdir($dir);
+                };
+
+                $checkDir('symcon');
+                //if monthly or yearly check if an dir for this period is exist or create it
+                switch ($this->ReadPropertyString('ChangePeriode')) {
+                    case 'Weekly':
+                        //check if the current week had a dir if not create one
+                        //Pattern 'Y-m-d' check if it is a Monday
+                        $currentPattern = date('Y-m-d') == date('Y-m-d', strtotime('Monday')) ? date('Y-m-d') : date('Y-m-d', strtotime('Monday'));
+                        $checkDir($currentPattern);
+                        break;
+                    case 'Monthly':
+                        //check if the current month had a dir if not create one
+                        // Pattern 'Y'-'m'
+                        $currentPattern = date('Y-m');
+                        $checkDir($currentPattern);
+                        break;
+                    case 'Yearly':
+                        //check if the current year had a dir if not create one
+                        //pattern 'Y'
+                        $currentPattern = date('Y');
+                        $checkDir($currentPattern);
+                        break;
+                    case 'Never':
+                    default:
+                        //On never and default create the Backup in the symcon folder
+                        break;
+                }
             }
 
             //Get the total number of the files to copy
@@ -116,7 +163,7 @@ class SymconBackup extends IPSModule
             switch ($mode) {
                 case 'IncrementalBackup':
                     //Get the file number what should delete
-                    $totalFiles += $this->getDeletableFiles($connection, $baseDir, $dir);
+                    $totalFiles += $this->getDeletableFiles($connection, $connection->pwd(), $dir);
                     //Need the files that copy to remote too
                     // No break. Add additional comment above this line if intentional
                 case 'FullBackup':
@@ -153,6 +200,7 @@ class SymconBackup extends IPSModule
             $this->UpdateFormField('Progress', 'indeterminate', true);
             $this->UpdateFormField('Progress', 'visible', false);
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
+
             $this->SetValue('LastFinishedBackup', time());
             $this->setNewTimer();
 
@@ -167,6 +215,18 @@ class SymconBackup extends IPSModule
     public function UIEnableTimer(bool $value)
     {
         $this->UpdateFormField('DailyUpdateTime', 'visible', $value);
+    }
+
+    public function UIEnableChange(string $mode)
+    {
+        switch ($mode) {
+            case 'FullBackup':
+                $this->UpdateFormField('ChangePeriode', 'visible', false);
+                break;
+            case 'IncrementalBackup':
+                $this->UpdateFormField('ChangePeriode', 'visible', true);
+                break;
+        }
     }
 
     public function UIChangePort(string $value)
@@ -243,15 +303,6 @@ class SymconBackup extends IPSModule
         $this->UILoadDir($connection->pwd(), $host, $port, $username, $password, $connectionType);
         $this->UpdateFormField('CurrentDir', 'value', $connection->pwd());
         $connection->disconnect();
-    }
-
-    public function GetConfigurationForm()
-    {
-        $this->SetBuffer('TargetDirection', '');
-        $json = json_decode(file_get_contents(__DIR__ . '/form.json', true), true);
-        $json['elements'][4]['visible'] = $this->ReadPropertyBoolean('EnableTimer');
-
-        return json_encode($json);
     }
 
     public function UITestConnection()
