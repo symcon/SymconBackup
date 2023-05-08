@@ -290,6 +290,12 @@ class SymconBackup extends IPSModule
             }
         }
         $this->UpdateFormField('SelectTargetDirectory', 'values', json_encode($dirs));
+        //If the root directory is empty 
+        if($dirs == []){
+            echo $this->Translate('There are no directories, we assume the root as target');
+            $this->UIAssumeDir($dir, $host, $port, $username, $password, $connectionType);
+        }
+        
         $connection->disconnect();
     }
 
