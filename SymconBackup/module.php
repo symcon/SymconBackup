@@ -183,14 +183,14 @@ class SymconBackup extends IPSModule
         }
     }
 
-    public function UISelectDir(string $host, int $port, string $username, string $password)
+    public function UISelectDir(string $host, int $port, string $username, string $password, string $connectionType)
     {
-        $this->UIGoDeeper('/', $host, $port, $username, $password);
+        $this->UIGoDeeper('/', $host, $port, $username, $password, $connectionType);
     }
 
-    public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password)
+    public function UIAssumeDir(string $value, string $host, int $port, string $username, string $password, string $connectionType)
     {
-        $connection = $this->createConnectionEx($host, $port, $username, $password, true);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, $connectionType, true);
         if ($connection === false) {
             return;
         }
@@ -199,9 +199,9 @@ class SymconBackup extends IPSModule
         $connection->disconnect();
     }
 
-    public function UILoadDir(string $dir, string $host, int $port, string $username, string $password)
+    public function UILoadDir(string $dir, string $host, int $port, string $username, string $password, string $connectionType)
     {
-        $connection = $this->createConnectionEx($host, $port, $username, $password, true);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, $connectionType, true);
         if ($connection === false) {
             return;
         }
@@ -228,14 +228,14 @@ class SymconBackup extends IPSModule
         $connection->disconnect();
     }
 
-    public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password)
+    public function UIGoDeeper(string $value, string $host, int $port, string $username, string $password, string $connectionType)
     {
-        $connection = $this->createConnectionEx($host, $port, $username, $password, true);
+        $connection = $this->createConnectionEx($host, $port, $username, $password, $connectionType, true);
         if ($connection === false) {
             return;
         }
         $connection->chdir($value);
-        $this->UILoadDir($connection->pwd(), $host, $port, $username, $password);
+        $this->UILoadDir($connection->pwd(), $host, $port, $username, $password, $connectionType);
         $this->UpdateFormField('CurrentDir', 'value', $connection->pwd());
         $connection->disconnect();
     }
@@ -257,6 +257,7 @@ class SymconBackup extends IPSModule
             $this->ReadPropertyInteger('Port'),
             $this->ReadPropertyString('Username'),
             $this->ReadPropertyString('Password'),
+            $this->ReadPropertyString('ConnectionType'),
             true,
         );
         if ($connection !== false) {
@@ -536,17 +537,18 @@ class SymconBackup extends IPSModule
             $this->ReadPropertyInteger('Port'),
             $this->ReadPropertyString('Username'),
             $this->ReadPropertyString('Password'),
+            $this->ReadPropertyString('ConnectionType'),
             false,
         );
     }
 
-    private function createConnectionEx(string $host, int $port, string $username, string $password, bool $showError)
+    private function createConnectionEx(string $host, int $port, string $username, string $password, string $connectionType, bool $showError)
     {
         $this->UpdateFormField('Progress', 'visible', true);
         $this->UpdateFormField('Progress', 'caption', $this->Translate('Wait on connection'));
         //Create Connection
         try {
-            switch ($this->ReadPropertyString('ConnectionType')) {
+            switch ($connectionType) {
                 case 'SFTP':
                     $connection = new SFTP($host, $port);
                     break;
