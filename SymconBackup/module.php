@@ -61,6 +61,7 @@ class SymconBackup extends IPSModule
 
             if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
                 $this->SetStatus(202);
+                $this->disconnect();
                 return;
             }
 
