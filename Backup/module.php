@@ -7,7 +7,7 @@ include_once __DIR__ . '/../libs/FTP.php';
 include_once __DIR__ . '/../libs/FTPS.php';
 use phpseclib3\Net\SFTP;
 
-class SymconBackup extends IPSModule
+class Backup extends IPSModule
 {
     public function Create()
     {

@@ -1,4 +1,4 @@
-# SymconBackup
+# Backup
 Erstellt ein Backup über SFTP, FTP oder FTPS.
 
 ### Inhaltsverzeichnis
@@ -13,7 +13,7 @@ Erstellt ein Backup über SFTP, FTP oder FTPS.
 ### 1. Funktionsumfang
 
 * Erstellt ein Backup über SFTP, FTP oder FTPS auf einem Server
-* Updatet ein Backup über SFTP, FTP oder FTPS auf einem Server
+* Aktualisiert ein Backup über SFTP, FTP oder FTPS auf einem Server
 
 ### 2. Voraussetzungen
 
@@ -21,12 +21,12 @@ Erstellt ein Backup über SFTP, FTP oder FTPS.
 
 ### 3. Software-Installation
 
-* Über den Module Store das 'SymconBackup'-Modul installieren.
-* Alternativ über das Module Control folgende URL hinzufügen
+* Über den Module Store das 'Backup (SFTP/FTP/FTPS)'-Modul installieren.
+* Alternativ über das Module Control folgende URL hinzufügen: https://github.com/symcon/SymconBackup
 
 ### 4. Einrichten der Instanzen in IP-Symcon
 
- Unter 'Instanz hinzufügen' kann das 'SymconBackup'-Modul mithilfe des Schnellfilters gefunden werden.  
+ Unter 'Instanz hinzufügen' kann das 'Backup (SFTP/FTP/FTPS)'-Modul mithilfe des Schnellfilters gefunden werden.  
 	- Weitere Informationen zum Hinzufügen von Instanzen in der [Dokumentation der Instanzen](https://www.symcon.de/service/dokumentation/konzepte/instanzen/#Instanz_hinzufügen)
 
 __Konfigurationsseite__:
