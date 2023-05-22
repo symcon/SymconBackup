@@ -3,4 +3,7 @@
 [![Check Style](https://github.com/symcon/VariablenVergleich/workflows/Check%20Style/badge.svg)](https://github.com/symcon/VariablenVergleich/actions)
 [![Run Tests](https://github.com/symcon/VariablenVergleich/workflows/Run%20Tests/badge.svg)](https://github.com/symcon/VariablenVergleich/actions)
 
- Erstellt ein Backup über SFTP. 
+Folgende Module beinhaltet das SymconBackup Repository:
+
+- __SymconBackup__ ([Dokumentation](https://github.com/symcon/SymconBackup/tree/master/SymconBackup))  
+    Erstellt ein Backup über SFTP/FTP/FTPS
