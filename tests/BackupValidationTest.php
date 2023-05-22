@@ -13,6 +13,6 @@ class SymconBackupValidationTest extends TestCaseSymconValidation
 
     public function testValidateSymconBackupModule(): void
     {
-        $this->validateModule(__DIR__ . '/../SymconBackup');
+        $this->validateModule(__DIR__ . '/../Backup');
     }
 }
