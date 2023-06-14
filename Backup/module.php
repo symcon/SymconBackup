@@ -573,6 +573,13 @@ class Backup extends IPSModule
             return true;
         }
 
+        //For Windows we want to exclude logs as well, which are not in a separate folder
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            if (substr($path, $offset, 4) == 'logs') {
+                return true;
+            }
+        }
+
         //Check against file filter
         $filters = json_decode($this->ReadPropertyString('FilterDirectory'), true);
         $filters = array_column($filters, 'Directory');
