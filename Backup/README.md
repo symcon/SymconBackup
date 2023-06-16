@@ -51,9 +51,14 @@ Backup erstellen                | Button, welcher sofort ein Update startet.
 Verbindung testen               | Testet, ob eine Verbindung hergestellt werden kann
 
 __Modus__: 
-Vollständiges Backup: Erstellt eine vollständige Kopie in einem separaten Ordner 
-Inkrementelles Backup: Updatet ein bestehendes Backup. Im Zielordner wird der Ordner 'symcon' zusätzlich angelegt. 
-Steht die Option 'Wechsel nach Ordner' nicht auf 'Niemals', so wird der Ordner nach der eingestellten Zeit gewechselt. 
+Vollständiges Backup: Erstellt eine vollständige Kopie in einem separaten Ordner nach dem Pattern: symcon-backup-{Jahr}-{Monat}-{Tag}-{Stunde}-{Minute}-{Sekunde}  
+Inkrementelles Backup: Updatet ein bestehendes Backup.  
+Steht die Option 'Wechsel nach Ordner' nicht auf 'Niemals', so wird der Ordner nach der eingestellten Zeit gewechselt.  
+Die Ordner, welche beim inkrementellen Backup erstellt werden, folgen folgenden Pattern:  
+- Niemals: symcon-backup
+- Woche: symcon-backup-{Jahr}-0{Kalenderwoche}  
+- Monat: symcon-backup-{Jahr}-{Monat}  
+- Jahr: symcon-backup-{Jahr}  
 
 ### 5. Statusvariablen und Profile
 
