@@ -1,6 +1,6 @@
 {
     "id": "{17B28910-EB47-B170-AE3E-0128403CCDC5}",
-    "name": "SymconBackup",
+    "name": "Backup",
     "type": 0,
     "vendor": "",
     "aliases": [],
@@ -8,5 +8,5 @@
     "childRequirements": [],
     "implemented": [],
     "prefix": "SB",
-    "url": "https://github.com/symcon/SymconBackup/SymconBackup"
+    "url": "https://github.com/symcon/SymconBackup/tree/master/Backup"
 }

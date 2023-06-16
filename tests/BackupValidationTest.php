@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 include_once __DIR__ . '/stubs/Validator.php';
 
-class SymconBackupValidationTest extends TestCaseSymconValidation
+class BackupValidationTest extends TestCaseSymconValidation
 {
     public function testValidateSymconBackup(): void
     {
         $this->validateLibrary(__DIR__ . '/..');
     }
 
-    public function testValidateSymconBackupModule(): void
+    public function testValidateBackupModule(): void
     {
-        $this->validateModule(__DIR__ . '/../SymconBackup');
+        $this->validateModule(__DIR__ . '/../Backup');
     }
 }

@@ -7,7 +7,7 @@ include_once __DIR__ . '/../libs/FTP.php';
 include_once __DIR__ . '/../libs/FTPS.php';
 use phpseclib3\Net\SFTP;
 
-class SymconBackup extends IPSModule
+class Backup extends IPSModule
 {
     public function Create()
     {
@@ -62,7 +62,7 @@ class SymconBackup extends IPSModule
 
             if (!$connection->is_dir($this->ReadPropertyString('TargetDir'))) {
                 $this->SetStatus(202);
-                $this->disconnect();
+                $connection->disconnect();
                 return;
             }
 
@@ -577,6 +577,13 @@ class SymconBackup extends IPSModule
         //We do not require to backup sessions
         if (substr($path, $offset, 7) == 'session') {
             return true;
+        }
+
+        //For Windows we want to exclude logs as well, which are not in a separate folder
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            if (substr($path, $offset, 4) == 'logs') {
+                return true;
+            }
         }
 
         //Check against file filter
