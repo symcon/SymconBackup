@@ -117,7 +117,7 @@ class Backup extends IPSModule
             //Set the remote dir
             $mode = $this->ReadPropertyString('Mode');
             if ($mode == 'FullBackup') {
-                $backupName = date('Y-m-d-H-i-s');
+                $backupName = 'symcon-backup-' . date('Y-m-d-H-i-s');
                 $connection->mkdir($backupName);
                 $connection->chdir($backupName);
             } else {
@@ -130,32 +130,30 @@ class Backup extends IPSModule
                     $connection->chdir($dir);
                 };
 
-                $checkDir('symcon');
+                $currentPattern = 'symcon-backup';
                 //if monthly or yearly check if an dir for this period is exist or create it
                 switch ($this->ReadPropertyString('ChangePeriode')) {
                     case 'Weekly':
                         //check if the current week had a dir if not create one
-                        //Pattern 'Y-m-d' check if it is a Monday
-                        $currentPattern = date('Y-m-d') == date('Y-m-d', strtotime('Monday')) ? date('Y-m-d') : date('Y-m-d', strtotime('Monday'));
-                        $checkDir($currentPattern);
+                        //Pattern 'Y-0W'
+                        $currentPattern .= '-' . date('Y-0W');
                         break;
                     case 'Monthly':
                         //check if the current month had a dir if not create one
                         // Pattern 'Y'-'m'
-                        $currentPattern = date('Y-m');
-                        $checkDir($currentPattern);
+                        $currentPattern .= '-' . date('Y-m');
                         break;
                     case 'Yearly':
                         //check if the current year had a dir if not create one
                         //pattern 'Y'
-                        $currentPattern = date('Y');
-                        $checkDir($currentPattern);
+                        $currentPattern .= '-' . date('Y');
                         break;
                     case 'Never':
                     default:
-                        //On never and default create the Backup in the symcon folder
+                        //On never and default create the Backup in the symcon-backup folder
                         break;
                 }
+                $checkDir($currentPattern);
             }
 
             //Get the total number of the files to copy
