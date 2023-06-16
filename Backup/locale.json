@@ -39,7 +39,8 @@
             "Username/Password is invalid": "Benutzername/Passwort ist nicht korrekt",
             "Connection is invalid": "Verbindung ist nicht korrekt",
             "Error: The Connection is invalid": "Fehler: Die Verbindung ist nicht korrekt",
-            "Host/Port is invalid": "Host/Port ist nicht korrekt"
+            "Host/Port is invalid": "Host/Port ist nicht korrekt",
+            "There are no directories, we assume the root as target": "Dort sind keine Ordner, root wird als Zielordner übernommen"
         }
     }
 }
