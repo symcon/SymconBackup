@@ -176,8 +176,13 @@ class Backup extends IPSModule
             //Go recursively through the directories and files and copy from local to remote
             $transferred = 0;
             $passedFiles = 0;
-            if (!$this->copyLocalToRemote($dir, $connection, $mode, $transferred,
-            $passedFiles)) {
+            if (!$this->copyLocalToRemote(
+                $dir,
+                $connection,
+                $mode,
+                $transferred,
+                $passedFiles
+            )) {
                 $connection->disconnect();
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
@@ -386,7 +391,7 @@ class Backup extends IPSModule
         return $numberOf;
     }
 
-    private function copyLocalToRemote(string $dir, $connection, string $mode, & $transferred, & $passedFiles)
+    private function copyLocalToRemote(string $dir, $connection, string $mode, &$transferred, &$passedFiles)
     {
 
         //get the local files
@@ -454,7 +459,7 @@ class Backup extends IPSModule
                             }
                         }
                         break;
-                    }
+                }
             }
         }
         return true;
@@ -473,7 +478,7 @@ class Backup extends IPSModule
         }
     }
 
-    private function compareFilesRemoteToLocal($dir, $connection, string $slug, & $passedFiles)
+    private function compareFilesRemoteToLocal($dir, $connection, string $slug, &$passedFiles)
     {
         $remoteList = $connection->rawlist($dir, false);
         foreach ($remoteList as $key => $file) {
