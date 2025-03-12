@@ -84,14 +84,17 @@ class Backup extends IPSModule
     public function CreateBackup()
     {
         if (IPS_SemaphoreEnter('CreateBackup', 1000)) {
-            //Create Connection
+            // Directly schedule a new backup slot in case of a failure
+            $this->setNewTimer();
+
+            // Create Connection
             $connection = $this->createConnection();
             if ($connection === false) {
                 IPS_SemaphoreLeave('CreateBackup');
                 return false;
             }
 
-            //Set the base directory on the remote
+            // Set the base directory on the remote
             $baseDir = $this->ReadPropertyString('TargetDir');
             if ($baseDir != '') {
                 $connection->chdir($baseDir);
@@ -114,14 +117,14 @@ class Backup extends IPSModule
             $dir = $this->getDataDir();
             $this->UpdateFormField('Progress', 'caption', $dir);
 
-            //Set the remote dir
+            // Set the remote dir
             $mode = $this->ReadPropertyString('Mode');
             if ($mode == 'FullBackup') {
                 $backupName = 'symcon-backup-' . date('Y-m-d-H-i-s');
                 $connection->mkdir($backupName);
                 $connection->chdir($backupName);
             } else {
-                //To avoid check on empty or existing backup create a new dir
+                // To avoid check on empty or existing backup create a new dir
                 $checkDir = function ($dir) use ($connection)
                 {
                     if (!$connection->is_dir($connection->pwd() . '/' . $dir)) {
@@ -131,7 +134,7 @@ class Backup extends IPSModule
                 };
 
                 $currentPattern = 'symcon-backup';
-                //if monthly or yearly check if an dir for this period is exist or create it
+                // If monthly or yearly check if an dir for this period is exist or create it
                 switch ($this->ReadPropertyString('ChangePeriode')) {
                     case 'Weekly':
                         //check if the current week had a dir if not create one
@@ -150,7 +153,7 @@ class Backup extends IPSModule
                         break;
                     case 'Never':
                     default:
-                        //On never and default create the Backup in the symcon-backup folder
+                        // On never and default create the Backup in the symcon-backup folder
                         break;
                 }
                 $checkDir($currentPattern);
@@ -205,7 +208,6 @@ class Backup extends IPSModule
             $this->UpdateFormField('InformationLabel', 'caption', $this->Translate('Backup is finished'));
 
             $this->SetValue('LastFinishedBackup', time());
-            $this->setNewTimer();
 
             IPS_SemaphoreLeave('CreateBackup');
         } else {
