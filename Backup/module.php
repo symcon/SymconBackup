@@ -39,7 +39,7 @@ class Backup extends IPSModule
         $this->RegisterVariableInteger('LastFinishedBackup', $this->Translate('Last Finished Backup'), '~UnixTimestamp', 0);
         $this->RegisterVariableFloat('TransferredMegabytes', $this->Translate('Transferred Megabytes'), 'Megabytes.Backup', 0);
 
-        $this->RegisterTimer('UpdateBackup', 0, 'SB_CreateBackup($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('UpdateBackup', 0, 'IPS_RunScriptText(\'SB_CreateBackup(' . $_IPS['TARGET'] . ');\');');
     }
 
     public function Destroy()
