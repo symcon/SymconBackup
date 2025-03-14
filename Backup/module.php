@@ -89,8 +89,8 @@ class Backup extends IPSModule
 
             // Raise memory_limit to the configured size limit
             $memory_limit = $this->ReadPropertyInteger('SizeLimit') + 10 /* Reserve for overhead */;
-            ini_set('memory_limit', $memory_limit . 'MB');
-            
+            ini_set('memory_limit', $memory_limit . 'M');
+
             // Create Connection
             $connection = $this->createConnection();
             if ($connection === false) {
