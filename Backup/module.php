@@ -87,6 +87,10 @@ class Backup extends IPSModule
             // Directly schedule a new backup slot in case of a failure
             $this->setNewTimer();
 
+            // Raise memory_limit to the configured size limit
+            $memory_limit = $this->ReadPropertyInteger('SizeLimit') + 10 /* Reserve for overhead */;
+            ini_set('memory_limit', $memory_limit . 'MB');
+            
             // Create Connection
             $connection = $this->createConnection();
             if ($connection === false) {
@@ -371,7 +375,7 @@ class Backup extends IPSModule
                 //Create directory and go to the deeper directory on remote
                 $numberOf = $this->getNumberOfFiles($connection, $dir . '/' . $file, $mode) + $numberOf;
             } else {
-                //check if the file size is higher than the php_memory limit
+                //check if the file size is higher than the size limit
                 $filesize = filesize($dir . '/' . $file);
                 if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
                     $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
@@ -415,7 +419,7 @@ class Backup extends IPSModule
             } else {
                 $this->updateFormFieldByTime($dir . '/' . $file);
 
-                //check if the file size is higher than the php_memory limit
+                //check if the file size is higher than the size limit
                 $filesize = filesize($dir . '/' . $file);
                 if ($filesize > $this->ReadPropertyInteger('SizeLimit') * 1024 * 1024) {
                     $this->SendDebug('Index', sprintf('Skipping too big file... %s. Size: %s', $dir . '/' . $file, $this->formatBytes($filesize)), 0);
