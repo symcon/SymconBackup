@@ -537,7 +537,7 @@ class Backup extends IPSModule
             $time = json_decode($this->ReadPropertyString('DailyUpdateTime'), true);
             $dayTime = $time['hour'] * 3600 + $time['minute'] * 60 + $time['second'];
             $currentTime = intval(date('H')) * 3600 + intval(date('i')) * 60 + intval(date('s'));
-            if ($dayTime < $currentTime) {
+            if ($dayTime <= $currentTime) {
                 $next = strtotime('tomorrow ' . $time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
             } else {
                 $next = strtotime($time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
