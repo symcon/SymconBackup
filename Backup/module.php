@@ -542,7 +542,7 @@ class Backup extends IPSModule
             } else {
                 $next = strtotime($time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
             }
-            $this->SetTimerInterval('UpdateBackup', ($next - time()) * 1000);
+            $this->SetTimerInterval('UpdateBackup', max(1, $next - time()) * 1000);
         } else {
             $this->SetTimerInterval('UpdateBackup', 0);
         }
