@@ -537,7 +537,9 @@ class Backup extends IPSModule
             $time = json_decode($this->ReadPropertyString('DailyUpdateTime'), true);
             $dayTime = $time['hour'] * 3600 + $time['minute'] * 60 + $time['second'];
             $currentTime = intval(date('H')) * 3600 + intval(date('i')) * 60 + intval(date('s'));
-            if ($dayTime <= $currentTime) {
+            // Adding one minute padding to current time to avoid slight inconsistencies in the time
+            // Otherwise, setting the timer with $dayTime 9:00:00 and $currentTime 8:59:59 would lead to an interval of 1 second
+            if ($dayTime <= ($currentTime + 60)) {
                 $next = strtotime('tomorrow ' . $time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
             } else {
                 $next = strtotime($time['hour'] . ':' . $time['minute'] . ':' . $time['second']);
