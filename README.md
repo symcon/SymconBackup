@@ -5,5 +5,5 @@
 
 Folgende Module beinhaltet das SymconBackup Repository:
 
-- __Backup__ ([Dokumentation](https://www.symcon.de/de/service/dokumentation/modulreferenz/backup))  
+- __Backup__ ([Dokumentation](https://www.symcon.de/de/service/dokumentation/modulreferenz/backup/))  
     Erstellt ein Backup über SFTP/FTP/FTPS
